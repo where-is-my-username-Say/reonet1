@@ -1,0 +1,167 @@
+:root {
+  --primary: #00f2ff;
+  --primary-glow: rgba(0, 242, 255, 0.4);
+  --secondary: #7000ff;
+  --secondary-glow: rgba(112, 0, 255, 0.4);
+  --accent: #ff0055;
+  --background: #030305;
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+@import "tailwindcss";
+
+body {
+  background-color: #030305;
+  color: white;
+  overflow-x: hidden;
+  font-family: 'Oxanium', sans-serif;
+}
+
+body::selection {
+  background-color: var(--primary);
+  color: black;
+}
+
+[dir="rtl"] body {
+  font-family: 'Cairo', sans-serif;
+}
+
+/* Dark Rounded Glass Cards */
+.glass-panel {
+  position: relative;
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 30px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.5s;
+}
+
+.glass-card:hover {
+  transform: translateY(-0.5rem);
+  box-shadow: 0 0 50px -10px var(--primary-glow);
+  border-color: rgba(0, 242, 255, 0.3);
+}
+
+/* Neon Typography */
+.neon-text {
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: white;
+  text-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow);
+}
+
+.glow-text {
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(to bottom right, var(--primary), var(--secondary));
+}
+
+/* Neon Buttons */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 242, 255, 0.1);
+  border: 1px solid rgba(0, 242, 255, 0.5);
+  color: var(--primary);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 1.25rem 2.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 20px -5px var(--primary-glow);
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  background: var(--primary);
+  color: black;
+  box-shadow: 0 0 40px var(--primary-glow);
+  transform: scale(1.02);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 1rem 2rem;
+  border-radius: 9999px;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.input-field {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.5rem;
+  padding: 1.25rem 2rem;
+  font-size: 1.25rem;
+  outline: none;
+  color: white;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.input-field::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.input-field:focus {
+  border-color: rgba(0, 242, 255, 0.5);
+  box-shadow: 0 0 30px -10px var(--primary-glow);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animations */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
