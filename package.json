@@ -20,7 +20,6 @@
     "daisyui": "^5.5.1-beta.2",
     "firebase": "^12.8.0",
     "framer-motion": "^12.26.2",
-    "framer-motion-3d": "^12.4.13",
     "i18next": "^25.7.4",
     "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "^0.562.0",
