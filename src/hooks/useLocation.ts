@@ -14,7 +14,8 @@ export const useLocation = () => {
         const handlePositionSuccess = (latitude: number, longitude: number, source: string) => {
             console.log(`Accuracy Source: ${source}`);
             setLocation({ lat: latitude, lng: longitude });
-            const googleMapsLink = `https://maps.google.com/?q=${latitude},${longitude}`;
+            // Universal link that works better on mobile devices (Android/iOS)
+            const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
             navigator.clipboard.writeText(googleMapsLink)
                 .then(() => {

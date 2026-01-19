@@ -48,13 +48,13 @@ export const BackgroundVFX = () => {
             },
             particles: {
                 color: {
-                    value: "#00f2ff", /* Neon Cyan */
+                    value: "#000000", /* Black */
                 },
                 links: {
-                    color: "#00f2ff",
+                    color: "#000000",
                     distance: 150,
                     enable: true,
-                    opacity: 0.2,
+                    opacity: 0.1,
                     width: 1,
                 },
                 move: {

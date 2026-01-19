@@ -12,12 +12,16 @@ import {
   CheckCircle2,
   Send,
   AlertTriangle,
-  ChevronRight
+  ChevronRight,
+  CreditCard,
+  Wallet
 } from 'lucide-react';
-import { BackgroundVFX } from './components/BackgroundVFX';
+import { InteractiveBackground } from './components/InteractiveBackground';
 import { RippleEffect } from './components/RippleEffect';
 import { useLocation } from './hooks/useLocation';
+import { LanguageSelector } from './components/LanguageSelector';
 import './i18n';
+import { TiltCard } from './components/TiltCard';
 import { db } from './firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -31,8 +35,10 @@ const services = [
 
 function App() {
   const { t, i18n } = useTranslation();
+  const [hasChosenLanguage, setHasChosenLanguage] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [name, setName] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank' | ''>('');
   const [step, setStep] = useState(1);
   const [locationSuccess, setLocationSuccess] = useState(false);
   const { address, setAddress, detectLocation, loading: locationLoading, error: locationError } = useLocation();
@@ -77,6 +83,7 @@ function App() {
       customer: {
         name: name || 'N/A',
         location: address || 'N/A',
+        payment: paymentMethod || 'N/A',
       },
       services: selectedServices.map(id => ({
         id,
@@ -111,10 +118,20 @@ ${servicesList}
 💰 الإجمالي: ${total} ${t('sar')}
 
 👤 الاسم: ${name || 'غير محدد'}
-📍 الموقع: ${address || 'غير محدد'}`;
+📍 الموقع: ${address || 'غير محدد'}
+💳 طريقة الدفع: ${paymentMethod === 'cash' ? t('cash') : t('bank')}`;
 
-    const url = "https://wa.me/966571081589?text=" + encodeURIComponent(msg);
-    window.open(url, "_blank");
+    const encodedMsg = encodeURIComponent(msg);
+    const phoneNumber = "966571081589";
+
+    // Smart Redirection based on Device (User Suggested Logic)
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      // Mobile: Use wa.me which deep-links to the app
+      window.location.href = `https://wa.me/${phoneNumber}?text=${encodedMsg}`;
+    } else {
+      // Desktop: Open WhatsApp Web in a new tab for better compatibility
+      window.open(`https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMsg}`, "_blank");
+    }
   };
 
   useEffect(() => {
@@ -127,10 +144,14 @@ ${servicesList}
     exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
   };
 
+  if (!hasChosenLanguage) {
+    return <LanguageSelector onSelect={() => setHasChosenLanguage(true)} />;
+  }
+
   return (
-    <div className="min-h-screen relative overflow-x-hidden w-full flex flex-col font-sans bg-[#030305] text-white">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <BackgroundVFX />
+    <div className="min-h-screen relative overflow-x-hidden w-full flex flex-col font-sans text-base-content">
+      <div className="fixed inset-0 z-0">
+        <InteractiveBackground />
       </div>
       <RippleEffect />
 
@@ -141,7 +162,7 @@ ${servicesList}
       <nav className="fixed top-0 inset-x-0 z-50 p-6 flex justify-between items-center bg-black/50 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center gap-3 bg-white/5 px-5 py-2 rounded-full border border-white/10">
           <div className={`w-3 h-3 rounded-full ${selectedServices.length > 0 ? 'bg-primary shadow-[0_0_10px_var(--primary-glow)]' : 'bg-red-500 shadow-[0_0_10px_#ef4444]'} animate-pulse`} />
-          <span className="font-bold text-xs tracking-widest text-white/70">REO<span className="text-primary">net</span>: v3.0</span>
+          <span className="font-bold text-xs tracking-widest text-white/70">REO <span className="text-primary">net</span></span>
         </div>
 
         <button
@@ -156,7 +177,7 @@ ${servicesList}
       </nav>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-grow flex flex-col items-center justify-center p-6 pt-28 pb-12 w-full max-w-7xl mx-auto">
+      <main className="relative z-10 flex-grow flex flex-col items-center justify-center p-6 pt-20 pb-12 w-full max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
 
           {/* STEP 1: SERVICE SELECTION */}
@@ -167,7 +188,7 @@ ${servicesList}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full flex flex-col items-center gap-16"
+              className="w-full flex flex-col items-center gap-10"
             >
               <div className="text-center space-y-6 max-w-4xl">
                 <motion.h1
@@ -194,30 +215,34 @@ ${servicesList}
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    onClick={() => toggleService(s.id)}
-                    className={`glass-card p-8 cursor-pointer group relative flex flex-col items-center text-center gap-6 
-                      ${selectedServices.includes(s.id) ? 'border-primary shadow-[0_0_30px_-5px_var(--primary-glow)]' : 'border-white/10 hover:bg-white/5'}`}
+                    className="h-full flex flex-col"
                   >
-                    <div className={`p-6 rounded-[2rem] ${s.bg} ${s.border} border-2 group-hover:scale-110 transition-transform duration-300`}>
-                      <s.icon className={`w-10 h-10 ${s.color}`} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-black uppercase tracking-tight text-white">{t(s.id + '_title')}</h3>
-                      <p className="text-sm text-white/50 font-medium leading-relaxed">{t(s.id + '_desc')}</p>
-                    </div>
-
-                    <div className="mt-auto pt-6 border-t border-white/10 w-full flex items-center justify-between">
-                      <div className="text-left rtl:text-right">
-                        <span className="text-3xl font-black text-white">{s.price}</span>
-                        <span className="text-xs text-primary font-bold uppercase ml-1">{t('sar')}</span>
+                    <TiltCard
+                      isSelected={selectedServices.includes(s.id)}
+                      onClick={() => toggleService(s.id)}
+                      className="cursor-pointer group"
+                    >
+                      <div className={`p-6 rounded-[2rem] ${s.bg} ${s.border} border-2 group-hover:scale-110 transition-transform duration-300`}>
+                        <s.icon className={`w-10 h-10 ${s.color}`} />
                       </div>
-                      {selectedServices.includes(s.id) ? (
-                        <CheckCircle2 className="w-8 h-8 text-primary drop-shadow-[0_0_10px_var(--primary-glow)]" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full border-2 border-white/20 group-hover:border-primary/50 transition-colors" />
-                      )}
-                    </div>
+
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black uppercase tracking-tight text-white">{t(s.id + '_title')}</h3>
+                        <p className="text-sm text-white/50 font-medium leading-relaxed">{t(s.id + '_desc')}</p>
+                      </div>
+
+                      <div className="mt-auto pt-6 border-t border-white/10 w-full flex items-center justify-between">
+                        <div className="text-left rtl:text-right">
+                          <span className="text-3xl font-black text-white">{s.price}</span>
+                          <span className="text-xs text-primary font-bold uppercase ml-1">{t('sar')}</span>
+                        </div>
+                        {selectedServices.includes(s.id) ? (
+                          <CheckCircle2 className="w-8 h-8 text-primary drop-shadow-[0_0_10px_var(--primary-glow)]" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full border-2 border-white/20 group-hover:border-primary/50 transition-colors" />
+                        )}
+                      </div>
+                    </TiltCard>
                   </motion.div>
                 ))}
               </div>
@@ -321,11 +346,44 @@ ${servicesList}
                     </button>
                   </div>
                 </div>
+
+                {/* PAYMENT METHOD */}
+                <div className="space-y-4">
+                  <label className="text-xs text-primary font-bold tracking-[0.2em] uppercase px-4">{t('payment_label')}</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setPaymentMethod('cash')}
+                      className={`flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all ${paymentMethod === 'cash'
+                        ? 'border-primary bg-primary/10 shadow-[0_0_20px_rgba(var(--primary-glow-rgb),0.2)]'
+                        : 'border-white/5 bg-white/5 hover:bg-white/10'
+                        }`}
+                    >
+                      <Wallet className={`w-8 h-8 ${paymentMethod === 'cash' ? 'text-primary' : 'text-white/40'}`} />
+                      <span className={`font-bold tracking-wide ${paymentMethod === 'cash' ? 'text-white' : 'text-white/40'}`}>{t('cash')}</span>
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('bank')}
+                      className={`flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all ${paymentMethod === 'bank'
+                        ? 'border-primary bg-primary/10 shadow-[0_0_20px_rgba(var(--primary-glow-rgb),0.2)]'
+                        : 'border-white/5 bg-white/5 hover:bg-white/10'
+                        }`}
+                    >
+                      <CreditCard className={`w-8 h-8 ${paymentMethod === 'bank' ? 'text-primary' : 'text-white/40'}`} />
+                      <span className={`font-bold tracking-wide ${paymentMethod === 'bank' ? 'text-white' : 'text-white/40'}`}>{t('bank')}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-4 pt-4">
                 <button onClick={handleBack} className="btn-secondary flex-1">{t('modify_artifact')}</button>
-                <button onClick={handleNext} className="btn-primary flex-1">{t('ready')}</button>
+                <button
+                  onClick={handleNext}
+                  disabled={!name.trim() || !address.trim() || !paymentMethod}
+                  className="btn-primary flex-1 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  {t('ready')}
+                </button>
               </div>
             </motion.div>
           )}
@@ -338,7 +396,7 @@ ${servicesList}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full max-w-2xl glass-card p-10 md:p-14 text-center space-y-10"
+              className="w-full max-w-2xl glass-card p-10 md:p-14 text-center space-y-6"
             >
               <div className="space-y-4">
                 <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_-5px_var(--primary-glow)]">
@@ -355,6 +413,10 @@ ${servicesList}
                 <div className="flex justify-between border-b border-white/10 pb-4">
                   <span className="text-white/40 font-bold text-sm tracking-widest">{t('location_label')}</span>
                   <span className="font-bold text-lg text-white truncate max-w-[200px]">{address || '---'}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 pb-4">
+                  <span className="text-white/40 font-bold text-sm tracking-widest">{t('payment_label')}</span>
+                  <span className="font-bold text-lg text-white">{paymentMethod === 'cash' ? t('cash') : t('bank')}</span>
                 </div>
                 <div className="space-y-3 pt-2">
                   <span className="text-white/40 font-bold text-sm tracking-widest block">{t('services_header')}</span>

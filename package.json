@@ -10,11 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
     "@types/three": "^0.182.0",
+    "daisyui": "^5.5.1-beta.2",
     "firebase": "^12.8.0",
     "framer-motion": "^12.26.2",
     "framer-motion-3d": "^12.4.13",

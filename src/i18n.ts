@@ -19,8 +19,11 @@ const resources = {
             "taif_service": "لو كنت في الطائف، أقدر أجيك بنفسي للموقع وأخلص لك كل الأمور التقنية في مكانك ما عندي أي مشكلة.",
             "negotiable": "قابل للتفاوض",
             "order_now": "اطلب الآن",
-            "name_label": "الاسم (اختياري)",
-            "location_label": "الموقع من الخريطة",
+            "name_label": "الاسم الكريم",
+            "location_label": "الموقع (المكان)",
+            "payment_label": "طريقة الدفع",
+            "cash": "كاش / نقدي",
+            "bank": "تحويل بنكي",
             "location_btn": "تحديد موقعي",
             "vpn_warning": "⚠️ يرجى إيقاف الـ VPN أو برامج تغيير DNS لضمان دقة الموقع.",
             "send_whatsapp": "إرسال للواتساب",
@@ -36,7 +39,8 @@ const resources = {
             "ready": "جاهز؟",
             "data_check": "مراجعة البيانات",
             "gps_error_secure": "⚠️ لخصوصيتك، المتصفح يتطلب رابطًا آمنًا (HTTPS) لتحديد البيت بدقة. يرجى استخدام الرابط المرسل إليك أو إدخال الموقع يدويًا.",
-            "manual_location_guide": "اضغط هنا لمعرفة كيفية نسخ موقعك من الخرائط يدويًا"
+            "manual_location_guide": "اضغط هنا لمعرفة كيفية نسخ موقعك من الخرائط يدويًا",
+            "whatsapp_install_needed": "📱 يرجى التأكد من تثبيت واتساب على جهازك ليتم فتح التطبيق مباشرة."
         }
     },
     en: {
@@ -55,8 +59,11 @@ const resources = {
             "taif_service": "If you are in Taif, I can come to your location and handle all technical matters on-site. No problem at all.",
             "negotiable": "Negotiable",
             "order_now": "Order Now",
-            "name_label": "Name (Optional)",
-            "location_label": "Map Location",
+            "name_label": "Full Name",
+            "location_label": "Your Location / Place",
+            "payment_label": "Payment Method",
+            "cash": "Cash",
+            "bank": "Bank Transfer",
             "location_btn": "Detect My Location",
             "vpn_warning": "⚠️ Please turn off VPN or DNS changers for accurate location if any was on.",
             "send_whatsapp": "Send to WhatsApp",
@@ -70,7 +77,8 @@ const resources = {
             "name_placeholder": "Your Name...",
             "loc_placeholder": "Coordinates...",
             "ready": "Ready?",
-            "data_check": "Data Review"
+            "data_check": "Data Review",
+            "whatsapp_install_needed": "📱 Please ensure WhatsApp is installed on your device to open the app directly."
         }
     }
 };
