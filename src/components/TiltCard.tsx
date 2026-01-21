@@ -239,26 +239,20 @@ export const TiltCard = ({
 
     const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
 
-    useEffect(() => {
-        if (isPC) {
-            const controlsX = animate(floatX, [0, 1, 0], {
-                duration: 5 / floatSpeed,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: floatOffset * 0.5
-            });
-            const controlsY = animate(floatY, [0, -1, 0, 1, 0], {
-                duration: 7 / floatSpeed,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: floatOffset * 0.3
-            });
-            return () => {
-                controlsX.stop();
-                controlsY.stop();
-            };
-        }
-    }, [isPC, floatSpeed, floatOffset, floatX, floatY]);
+    const floatAnim = useMemo(() => isPC ? {
+        y: [0, -10, 0],
+        z: [0, 5, 0],
+        rotateX: [0, floatOffset % 2 === 0 ? 2 : -2, 0],
+        rotateY: [0, floatOffset % 2 === 0 ? -2 : 2, 0],
+        rotateZ: [-1, 1, -1],
+    } : {}, [isPC, floatOffset]);
+
+    const floatTransition = useMemo(() => ({
+        duration: 5 / floatSpeed,
+        repeat: Infinity,
+        ease: "easeInOut",
+        delay: floatOffset * 0.5
+    }), [floatSpeed, floatOffset]);
 
     const glareX = useTransform([xSpring, floatX], ([latestX, fX]: any) => {
         const combined = (latestX as number) + (fX as number) * 0.2;
@@ -287,19 +281,8 @@ export const TiltCard = ({
             {/* Layer 1: Floating Animation (Idle Sway) */}
             <motion.div
                 className="w-full h-full"
-                animate={isPC ? {
-                    y: [0, -10, 0],
-                    z: [0, 5, 0],
-                    rotateX: [0, floatOffset % 2 === 0 ? 2 : -2, 0],
-                    rotateY: [0, floatOffset % 2 === 0 ? -2 : 2, 0],
-                    rotateZ: [-1, 1, -1],
-                } : {}}
-                transition={{
-                    duration: 5 / floatSpeed,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: floatOffset * 0.5
-                }}
+                animate={floatAnim}
+                transition={floatTransition}
             >
                 {/* Layer 2: Mouse Tilt Interaction */}
                 <motion.div
@@ -313,7 +296,7 @@ export const TiltCard = ({
                     >
                         {/* FRONT */}
                         <div
-                            className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-white/10"
+                            className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 border-white/10"
                             style={{ backfaceVisibility: 'hidden' }}
                         >
                             <motion.div
