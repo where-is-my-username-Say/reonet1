@@ -50,9 +50,7 @@ export const TiltCard = ({
     const specX = useTransform(xSpring, [-1, 1], [30, 70]);
     const specY = useTransform(ySpring, [-1, 1], [30, 70]);
 
-    // Add lag to specular for realism
-    const specXSpring = useSpring(specX, { stiffness: 120, damping: 25 });
-    const specYSpring = useSpring(specY, { stiffness: 120, damping: 25 });
+
 
 
     const requestPermissions = async () => {
