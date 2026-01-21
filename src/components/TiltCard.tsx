@@ -30,7 +30,7 @@ export const TiltCard = ({
     isSelected = false,
     floatOffset = 0,
     floatSpeed = 1,
-    thickness = 12
+    thickness = 30
 }: TiltCardProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [debugInfo, setDebugInfo] = useState("");
@@ -387,55 +387,69 @@ export const TiltCard = ({
                     {/* SIDE FACES (Thickness) */}
                     {/* Right Side */}
                     <div
-                        className="absolute top-0 right-0 h-full bg-[#0c0c12]/90 border-white/5"
+                        className="absolute top-0 h-full border-y border-white/5 transition-colors duration-700"
                         style={{
                             width: `${thickness}px`,
-                            transformOrigin: 'right',
-                            transform: `rotateY(90deg) translateZ(${thickness / 2}px)`,
+                            right: `-${thickness / 2}px`,
+                            transform: `rotateY(90deg)`,
                             backfaceVisibility: 'hidden',
-                            background: 'linear-gradient(to left, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
+                            backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.2)' : 'rgba(12, 12, 18, 0.95)',
+                            background: isSelected
+                                ? 'linear-gradient(to left, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1))'
+                                : 'linear-gradient(to left, rgba(0,0,0,0.8), rgba(255,255,255,0.05))'
                         }}
                     />
                     {/* Left Side */}
                     <div
-                        className="absolute top-0 left-0 h-full bg-[#0c0c12]/90 border-white/5"
+                        className="absolute top-0 h-full border-y border-white/5 transition-colors duration-700"
                         style={{
                             width: `${thickness}px`,
-                            transformOrigin: 'left',
-                            transform: `rotateY(-90deg) translateZ(${thickness / 2}px)`,
+                            left: `-${thickness / 2}px`,
+                            transform: `rotateY(-90deg)`,
                             backfaceVisibility: 'hidden',
-                            background: 'linear-gradient(to right, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
+                            backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.2)' : 'rgba(12, 12, 18, 0.95)',
+                            background: isSelected
+                                ? 'linear-gradient(to right, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1))'
+                                : 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(255,255,255,0.05))'
                         }}
                     />
                     {/* Top Side */}
                     <div
-                        className="absolute top-0 left-0 w-full bg-[#0c0c12]/90 border-white/5"
+                        className="absolute left-0 w-full border-x border-white/5 transition-colors duration-700"
                         style={{
                             height: `${thickness}px`,
-                            transformOrigin: 'top',
-                            transform: `rotateX(90deg) translateZ(${thickness / 2}px)`,
+                            top: `-${thickness / 2}px`,
+                            transform: `rotateX(90deg)`,
                             backfaceVisibility: 'hidden',
-                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
+                            backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.2)' : 'rgba(12, 12, 18, 0.95)',
+                            background: isSelected
+                                ? 'linear-gradient(to bottom, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1))'
+                                : 'linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(255,255,255,0.05))'
                         }}
                     />
                     {/* Bottom Side */}
                     <div
-                        className="absolute bottom-0 left-0 w-full bg-[#0c0c12]/90 border-white/5"
+                        className="absolute left-0 w-full border-x border-white/5 transition-colors duration-700"
                         style={{
                             height: `${thickness}px`,
-                            transformOrigin: 'bottom',
-                            transform: `rotateX(-90deg) translateZ(${thickness / 2}px)`,
+                            bottom: `-${thickness / 2}px`,
+                            transform: `rotateX(-90deg)`,
                             backfaceVisibility: 'hidden',
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
+                            backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.2)' : 'rgba(12, 12, 18, 0.95)',
+                            background: isSelected
+                                ? 'linear-gradient(to top, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1))'
+                                : 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(255,255,255,0.05))'
                         }}
                     />
 
                     {/* BACK FACE */}
                     <div
-                        className="absolute inset-0 bg-[#05050a]/95 rounded-2xl border border-white/5 shadow-2xl"
+                        className="absolute inset-0 rounded-2xl border border-white/10 transition-colors duration-700"
                         style={{
                             transform: `translateZ(-${thickness / 2}px) rotateY(180deg)`,
-                            backfaceVisibility: 'hidden'
+                            backfaceVisibility: 'hidden',
+                            backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.1)' : 'rgba(5, 5, 10, 0.98)',
+                            boxShadow: isSelected ? '0 0 100px rgba(34, 197, 94, 0.3)' : '0 40px 100px rgba(0,0,0,1)'
                         }}
                     />
                 </div>
