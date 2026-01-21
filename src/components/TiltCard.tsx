@@ -236,21 +236,6 @@ export const TiltCard = ({
         if (onClick) onClick();
     };
 
-    // Hover Scale (New Feature)
-    const cardScale = useSpring(1, { stiffness: 300, damping: 20 });
-    useEffect(() => {
-        const checkHover = () => {
-            if (x.get() !== 0 || y.get() !== 0) cardScale.set(1.15);
-            else cardScale.set(1);
-        };
-        const unsubscribeX = x.onChange(checkHover);
-        const unsubscribeY = y.onChange(checkHover);
-        return () => {
-            unsubscribeX();
-            unsubscribeY();
-        };
-    }, [x, y, cardScale]);
-
     // Floating motion values for glare sync
     const floatX = useMotionValue(0);
     const floatY = useMotionValue(0);
@@ -299,7 +284,7 @@ export const TiltCard = ({
         >
             <motion.div
                 className="relative w-full h-full transform-style-3d"
-                style={{ rotateX, rotateY, x: translateX, y: translateY, scale: cardScale } as any}
+                style={{ rotateX, rotateY, x: translateX, y: translateY } as any}
             >
                 <motion.div
                     className="w-full h-full transform-style-3d relative"
