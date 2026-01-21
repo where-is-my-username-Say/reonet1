@@ -288,12 +288,10 @@ export const TiltCard = ({
                 style={{ rotateX, rotateY }}
                 animate={isPC ? {
                     y: [0, -12, 0],
-                    z: [0, 25, 0],
+                    z: [0, 5, 0],
                     rotateX: [0, floatOffset % 2 === 0 ? 4 : -4, 0],
                     rotateY: [0, floatOffset % 2 === 0 ? -4 : 4, 0],
                     rotateZ: [-1, 1, -1],
-                    // We can't directly animate x/y motion values in the same block easily
-                    // But we can use another motion div or just animate these float values
                 } : {}}
                 transition={{
                     duration: 5 / floatSpeed,
@@ -322,7 +320,7 @@ export const TiltCard = ({
                             <motion.div
                                 className="absolute inset-0 pointer-events-none"
                                 style={{
-                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(255,255,255,0.15), transparent 80%)`
+                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(255,255,255,0.25), transparent 80%)`
                                 }}
                             />
                             <div className="relative z-10 w-full flex flex-col items-center gap-6">
@@ -351,7 +349,7 @@ export const TiltCard = ({
                             <motion.div
                                 className="absolute inset-0 pointer-events-none"
                                 style={{
-                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(74, 222, 128, 0.25), transparent 80%)`
+                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(74, 222, 128, 0.4), transparent 80%)`
                                 }}
                             />
                             <div className="relative z-10 w-full flex flex-col items-center gap-6 opacity-90">
