@@ -11,10 +11,14 @@ export const RippleEffect = () => {
     const [ripples, setRipples] = useState<Ripple[]>([]);
 
     const addRipple = useCallback((e: MouseEvent) => {
+        // Clamp position to viewport bounds to prevent overflow
+        const x = Math.max(0, Math.min(window.innerWidth, e.clientX));
+        const y = Math.max(0, Math.min(window.innerHeight, e.clientY));
+
         const newRipple = {
             id: Date.now(),
-            x: e.clientX,
-            y: e.clientY,
+            x,
+            y,
         };
         setRipples((prev) => [...prev, newRipple]);
         setTimeout(() => {
@@ -34,7 +38,7 @@ export const RippleEffect = () => {
                     <motion.div
                         key={ripple.id}
                         initial={{ scale: 0, opacity: 0.5 }}
-                        animate={{ scale: 4, opacity: 0 }}
+                        animate={{ scale: 3, opacity: 0 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1, ease: "easeOut" }}
                         style={{
@@ -47,6 +51,7 @@ export const RippleEffect = () => {
                             borderRadius: '50%',
                             border: '2px solid rgba(0, 242, 255, 0.4)',
                             background: 'radial-gradient(circle, rgba(0, 242, 255, 0.2) 0%, transparent 70%)',
+                            willChange: 'transform, opacity',
                         }}
                     />
                 ))}

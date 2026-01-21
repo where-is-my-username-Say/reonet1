@@ -57,12 +57,20 @@
   -webkit-user-select: none;
 }
 
+html {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   background-color: #030305;
   color: #ffffff;
   margin: 0;
   user-select: none;
   -webkit-user-select: none;
+  overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 /* Custom 3D & Glass Utilities */
