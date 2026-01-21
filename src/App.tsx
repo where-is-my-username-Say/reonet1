@@ -236,8 +236,8 @@ ${servicesList}
                       floatOffset={i * 7.5}
                       floatSpeed={0.7 + (i * 0.15)}
                     >
-                      <div className={`p-6 rounded-[2rem] ${s.bg} ${s.border} border-2 group-hover:scale-110 transition-transform duration-300`}>
-                        <s.icon className={`w-10 h-10 ${s.color}`} />
+                      <div className={`p-4 rounded-[2rem] ${s.bg} ${s.border} border-2 group-hover:scale-110 transition-transform duration-300`}>
+                        <s.icon className={`w-8 h-8 ${s.color}`} />
                       </div>
 
                       <div className="space-y-2">
@@ -245,7 +245,7 @@ ${servicesList}
                         <p className="text-sm text-white/50 font-medium leading-relaxed">{t(s.id + '_desc')}</p>
                       </div>
 
-                      <div className="mt-auto pt-6 border-t border-white/10 w-full flex items-center justify-between">
+                      <div className="mt-auto pt-4 border-t border-white/10 w-full flex items-center justify-between">
                         <div className="text-left rtl:text-right">
                           <span className="text-3xl font-black text-white">{s.price}</span>
                           <span className="text-xs text-primary font-bold uppercase ml-1">{t('sar')}</span>
