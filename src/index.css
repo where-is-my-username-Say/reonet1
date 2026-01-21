@@ -53,12 +53,16 @@
   font-family: 'Rawasi', 'Cairo', sans-serif;
   background-color: #030305;
   color: #ffffff;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {
   background-color: #030305;
   color: #ffffff;
   margin: 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Custom 3D & Glass Utilities */
