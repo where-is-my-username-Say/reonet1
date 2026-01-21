@@ -6,6 +6,8 @@ interface TiltCardProps {
     onClick?: () => void;
     className?: string;
     isSelected?: boolean;
+    floatOffset?: number;
+    floatSpeed?: number;
 }
 
 declare global {
@@ -20,7 +22,14 @@ declare global {
     }
 }
 
-export const TiltCard = ({ children, onClick, className = "", isSelected = false }: TiltCardProps) => {
+export const TiltCard = ({
+    children,
+    onClick,
+    className = "",
+    isSelected = false,
+    floatOffset = 0,
+    floatSpeed = 1
+}: TiltCardProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [debugInfo, setDebugInfo] = useState("");
     const [showDebug, setShowDebug] = useState(false);
@@ -244,6 +253,17 @@ export const TiltCard = ({ children, onClick, className = "", isSelected = false
             <motion.div
                 className="relative w-full h-full transform-style-3d"
                 style={{ rotateX, rotateY }}
+                animate={!/Android|iPhone|iPad/i.test(navigator.userAgent) ? {
+                    y: [0, -15, 0],
+                    rotateZ: [floatOffset - 1.5, floatOffset + 1.5, floatOffset - 1.5],
+                    rotateX: [0, 2, 0],
+                } : {}}
+                transition={{
+                    duration: 4 / floatSpeed,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: floatOffset % 2
+                }}
             >
                 <motion.div
                     className="w-full h-full transform-style-3d relative"

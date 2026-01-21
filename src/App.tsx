@@ -231,6 +231,8 @@ ${servicesList}
                       isSelected={selectedServices.includes(s.id)}
                       onClick={() => toggleService(s.id)}
                       className="cursor-pointer group"
+                      floatOffset={i * 2}
+                      floatSpeed={0.8 + (i * 0.1)}
                     >
                       <div className={`p-6 rounded-[2rem] ${s.bg} ${s.border} border-2 group-hover:scale-110 transition-transform duration-300`}>
                         <s.icon className={`w-10 h-10 ${s.color}`} />
