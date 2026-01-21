@@ -352,7 +352,7 @@ export const TiltCard = ({
                             }}
                         />
 
-                        <div className="relative z-10 w-full flex flex-col items-center gap-6">
+                        <div className="relative z-10 w-full flex flex-col items-center gap-4">
                             {children}
                             <div className="w-12 h-12 rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.8)] border-2 border-white/20">
                                 <svg viewBox="0 0 20 20" fill="currentColor" className="w-8 h-8 text-white">
