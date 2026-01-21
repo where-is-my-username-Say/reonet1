@@ -139,9 +139,9 @@ ${servicesList}
   }, [i18n.language]);
 
   const containerVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
-    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+    hidden: { opacity: 0, scale: 0.8, x: "50%", y: "50%", transformOrigin: "bottom right" },
+    visible: { opacity: 1, scale: 1, x: 0, y: 0, transition: { type: "spring", damping: 25, stiffness: 200 } },
+    exit: { opacity: 0, scale: 0.8, x: "-50%", y: "50%", transition: { duration: 0.3 } }
   };
 
   if (!hasChosenLanguage) {
@@ -149,7 +149,7 @@ ${servicesList}
   }
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden w-full flex flex-col font-sans text-base-content">
+    <div className="min-h-screen relative overflow-x-hidden w-full flex flex-col font-sans text-base-content selection:bg-primary/30">
       <div className="fixed inset-0 z-0">
         <InteractiveBackground />
       </div>
@@ -160,9 +160,19 @@ ${servicesList}
 
       {/* Navbar */}
       <nav className="fixed top-0 inset-x-0 z-50 p-6 flex justify-between items-center bg-black/50 backdrop-blur-md border-b border-white/5">
-        <div className="flex items-center gap-3 bg-white/5 px-5 py-2 rounded-full border border-white/10">
-          <div className={`w-3 h-3 rounded-full ${selectedServices.length > 0 ? 'bg-primary shadow-[0_0_10px_var(--primary-glow)]' : 'bg-red-500 shadow-[0_0_10px_#ef4444]'} animate-pulse`} />
-          <span className="font-bold text-xs tracking-widest text-white/70">REO <span className="text-primary">net</span></span>
+        <div className="flex items-center gap-4">
+          <div className="relative group cursor-pointer">
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative px-5 py-2 bg-black rounded-xl border border-white/10 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                <span className="text-primary font-black text-xl italic tracking-tighter">R</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-black tracking-widest text-white leading-none">REO<span className="text-primary">NET</span></span>
+                <span className="text-[8px] font-bold text-primary/50 uppercase tracking-[0.3em] leading-none mt-1">Fiber Tech</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <button
