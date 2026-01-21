@@ -244,7 +244,7 @@ export const TiltCard = ({
         repeat: Infinity,
         ease: "easeInOut",
         delay: floatOffset * 0.5
-    }), [floatSpeed, floatOffset]);
+    } as any), [floatSpeed, floatOffset]);
 
     // Diffuse glare with tilt influence for physically accurate light behavior
     const glareX = useTransform([xSpring, floatX], ([x, fX]: any) => {
