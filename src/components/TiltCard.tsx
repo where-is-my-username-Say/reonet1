@@ -43,8 +43,10 @@ export const TiltCard = ({
     const xSpring = useSpring(x, springConfig);
     const ySpring = useSpring(y, springConfig);
 
-    const rotateX = useTransform(ySpring, [-1, 1], ["25deg", "-25deg"]);
-    const rotateY = useTransform(xSpring, [-1, 1], ["-25deg", "25deg"]);
+    const rotateX = useTransform(ySpring, [-1, 1], [30, -30]);
+    const rotateY = useTransform(xSpring, [-1, 1], [-30, 30]);
+    const translateX = useTransform(xSpring, [-1, 1], [20, -20]);
+    const translateY = useTransform(ySpring, [-1, 1], [20, -20]);
 
     const requestPermissions = async () => {
         // Request Orientation
@@ -281,7 +283,7 @@ export const TiltCard = ({
                 {/* Layer 2: Mouse Tilt Interaction */}
                 <motion.div
                     className="relative w-full h-full transform-style-3d"
-                    style={{ rotateX, rotateY } as any}
+                    style={{ rotateX, rotateY, x: translateX, y: translateY } as any}
                 >
                     <motion.div
                         className="glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500"
