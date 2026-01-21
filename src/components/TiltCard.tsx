@@ -47,6 +47,12 @@ export const TiltCard = ({
     const rotateX = useTransform(ySpring, [-1, 1], ["25deg", "-25deg"]);
     const rotateY = useTransform(xSpring, [-1, 1], ["-25deg", "25deg"]);
 
+    const flipRotation = useSpring(isSelected ? 180 : 0, { stiffness: 200, damping: 25 });
+
+    useEffect(() => {
+        flipRotation.set(isSelected ? 180 : 0);
+    }, [isSelected, flipRotation]);
+
 
     const requestPermissions = async () => {
         // Request Orientation
@@ -305,13 +311,15 @@ export const TiltCard = ({
                 >
                     <motion.div
                         className="w-full h-full transform-style-3d relative"
+                        style={{ rotateY: flipRotation }}
                         animate={isSelected ? {
-                            z: -20,
-                            scale: 0.98,
+                            z: [0, 80, 0],
+                            scale: [1, 1.1, 1],
                         } : {
-                            z: 0,
-                            scale: 1,
+                            z: [0, 80, 0],
+                            scale: [1, 1.1, 1],
                         }}
+                        transition={{ duration: 0.6, ease: "backOut" }}
                     >
                         <div
                             className={`absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500 ${isSelected
