@@ -254,12 +254,13 @@ export const TiltCard = ({
         }
     }, [isPC, floatSpeed, floatOffset, floatX, floatY]);
 
-    const glareX = useTransform([xSpring, floatX], ([latestX, fX]: any) => {
-        const combined = (latestX as number) + (fX as number) * 0.2;
+    // Realistic glare with tilt influence for physically accurate light behavior
+    const glareX = useTransform([xSpring, floatX, rotateY], ([x, fX, rY]: any) => {
+        const combined = (x as number) + (fX as number) * 0.2 + (parseFloat(rY as string) || 0) * 0.02;
         return `${(combined + 0.5) * 100}%`;
     });
-    const glareY = useTransform([ySpring, floatY], ([latestY, fY]: any) => {
-        const combined = (latestY as number) + (fY as number) * 0.2;
+    const glareY = useTransform([ySpring, floatY, rotateX], ([y, fY, rX]: any) => {
+        const combined = (y as number) + (fY as number) * 0.2 - (parseFloat(rX as string) || 0) * 0.02;
         return `${(combined + 0.5) * 100}%`;
     });
 
@@ -291,46 +292,59 @@ export const TiltCard = ({
                             ? '0 0 40px -5px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(34, 197, 94, 0.1)'
                             : '0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05)'
                     }}
+                    {/* Realistic multi-layer light with proper falloff */}
+                        <motion.div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        background: useMotionTemplate`
+                                    radial-gradient(
+                                        420px circle at ${glareX} ${glareY},
+                                        rgba(255,248,235,0.4) 0%,
+                                        rgba(255,248,235,0.18) 20%,
+                                        rgba(255,248,235,0.05) 38%,
+                                        transparent 55%
+                                    ),
+                                    radial-gradient(
+                                        900px circle at 50% 120%,
+                                        rgba(255,255,255,0.08),
+                                        transparent 70%
+                                    )
+                                `
+                    }}
+                />
+                <div className="relative z-10 w-full flex flex-col items-center gap-4">
+                    {children}
+                </div>
+
+                {/* Selection Status Indicator */}
+                {isSelected && (
+                    <div className="absolute top-6 right-6 flex items-center gap-2">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="w-8 h-8 rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.8)]"
+                        >
+                            <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Secret Debug Overlay */}
+                <div
+                    className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
                 >
-                    <motion.div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                            background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(255,255,255,0.25), transparent 80%)`
-                        }}
-                    />
-                    <div className="relative z-10 w-full flex flex-col items-center gap-4">
-                        {children}
-                    </div>
+                    {showDebug ? debugInfo : ""}
+                </div>
 
-                    {/* Selection Status Indicator */}
-                    {isSelected && (
-                        <div className="absolute top-6 right-6 flex items-center gap-2">
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="w-8 h-8 rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.8)]"
-                            >
-                                <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                            </motion.div>
-                        </div>
-                    )}
-
-                    {/* Secret Debug Overlay */}
-                    <div
-                        className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
-                    >
-                        {showDebug ? debugInfo : ""}
-                    </div>
-
-                    {/* Invisible trigger in corner */}
-                    <div
-                        className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
-                        onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
-                    />
-                </motion.div>
+                {/* Invisible trigger in corner */}
+                <div
+                    className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
+                    onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
+                />
             </motion.div>
-        </div>
+        </motion.div>
+        </div >
     );
 };
