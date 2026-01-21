@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useMemo, type MouseEvent } from 'react';
+import { useRef, useEffect, useState, type MouseEvent } from 'react';
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 interface TiltCardProps {
@@ -26,9 +26,7 @@ export const TiltCard = ({
     children,
     onClick,
     className = "",
-    isSelected = false,
-    floatOffset = 0,
-    floatSpeed = 1
+    isSelected = false
 }: TiltCardProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [debugInfo, setDebugInfo] = useState("");
@@ -39,14 +37,14 @@ export const TiltCard = ({
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
-    const springConfig = { stiffness: 300, damping: 25 };
+    const springConfig = { stiffness: 150, damping: 20 };
     const xSpring = useSpring(x, springConfig);
     const ySpring = useSpring(y, springConfig);
 
-    const rotateX = useTransform(ySpring, [-1, 1], [30, -30]);
-    const rotateY = useTransform(xSpring, [-1, 1], [-30, 30]);
-    const translateX = useTransform(xSpring, [-1, 1], [20, -20]);
-    const translateY = useTransform(ySpring, [-1, 1], [20, -20]);
+    // Legacy Tilt Dynamics: High intensity rotation, no manual translation
+    const rotateX = useTransform(ySpring, [-0.5, 0.5], [20, -20]);
+    const rotateY = useTransform(xSpring, [-0.5, 0.5], [-20, 20]);
+
 
     const requestPermissions = async () => {
         // Request Orientation
@@ -150,8 +148,8 @@ export const TiltCard = ({
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        const xPct = ((mouseX / width) - 0.5) * 2;
-        const yPct = ((mouseY / height) - 0.5) * 2;
+        const xPct = (mouseX / width) - 0.5;
+        const yPct = (mouseY / height) - 0.5;
 
         x.set(xPct);
         y.set(yPct);
@@ -227,42 +225,30 @@ export const TiltCard = ({
         if (onClick) onClick();
     };
 
-    // Floating motion values for glare sync
-    const floatX = useMotionValue(0);
-    const floatY = useMotionValue(0);
-
-    const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
-
-    const floatAnim = useMemo(() => isPC ? {
-        y: [0, -10, 0],
-        z: [0, 5, 0],
-        rotateX: [0, floatOffset % 2 === 0 ? 2 : -2, 0],
-        rotateY: [0, floatOffset % 2 === 0 ? -2 : 2, 0],
-        rotateZ: [-1, 1, -1],
-    } : {}, [isPC, floatOffset]);
-
-    const floatTransition = useMemo(() => ({
-        duration: 5 / floatSpeed,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay: floatOffset * 0.5
-    } as any), [floatSpeed, floatOffset]);
-
-    // Multi-layered glare with tilt bias for physically accurate light behavior
-    const rawGlareX = useTransform([xSpring, floatX], ([x, fX]: any) => {
-        const combined = (x as number) + (fX as number) * 0.2 + (x as number) * 0.15;
-        return combined;
-    });
-    const rawGlareY = useTransform([ySpring, floatY], ([y, fY]: any) => {
-        const combined = (y as number) + (fY as number) * 0.2 - (y as number) * 0.15;
-        return combined;
-    });
+    // Unified interaction values
+    const rawGlareX = useTransform(xSpring, v => v);
+    const rawGlareY = useTransform(ySpring, v => v);
 
     const smoothGlareX = useSpring(rawGlareX, { stiffness: 200, damping: 30 });
     const smoothGlareY = useSpring(rawGlareY, { stiffness: 200, damping: 30 });
 
-    const glarePosRelativeX = useTransform(smoothGlareX, v => `${(v + 0.5) * 100}%`);
-    const glarePosRelativeY = useTransform(smoothGlareY, v => `${(v + 0.5) * 100}%`);
+    const glarePosRelativeX = useTransform(smoothGlareX, v => `${(v as number + 0.5) * 100}%`);
+    const glarePosRelativeY = useTransform(smoothGlareY, v => `${(v as number + 0.5) * 100}%`);
+
+    const cardScale = useSpring(1, { stiffness: 300, damping: 20 });
+
+    useEffect(() => {
+        const checkHover = () => {
+            if (x.get() !== 0 || y.get() !== 0) cardScale.set(1.15);
+            else cardScale.set(1);
+        };
+        const unsubscribeX = x.onChange(checkHover);
+        const unsubscribeY = y.onChange(checkHover);
+        return () => {
+            unsubscribeX();
+            unsubscribeY();
+        };
+    }, [x, y, cardScale]);
 
 
     return (
@@ -280,20 +266,16 @@ export const TiltCard = ({
             onTouchCancel={handleInteractionEnd}
             onContextMenu={(e) => isLongPressed && e.preventDefault()}
         >
-            {/* Layer 1: Floating Animation (Idle Sway) */}
             <motion.div
                 className="w-full h-full"
-                animate={floatAnim}
-                transition={floatTransition}
             >
-                {/* Layer 2: Mouse Tilt Interaction (Preserve 3D) */}
+                {/* Layer 2: Mouse Tilt Interaction (Legacy Restore) */}
                 <motion.div
                     className="relative w-full h-full"
                     style={{
                         rotateX,
                         rotateY,
-                        x: translateX,
-                        y: translateY,
+                        scale: cardScale,
                         transformStyle: 'preserve-3d'
                     } as any}
                 >
