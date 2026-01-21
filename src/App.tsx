@@ -59,15 +59,6 @@ function App() {
     });
   };
 
-  const handleNext = () => {
-    if (step === 1 && selectedServices.length > 0) setStep(2);
-    else if (step === 2) setStep(3);
-  };
-
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
   const handleSend = async () => {
     // Generate unique ID based on timestamp
     const orderId = Date.now().toString();
@@ -96,12 +87,10 @@ function App() {
 
     try {
       // Save to Firebase
-      // Note: User must create the 'orders' collection or start in Test Mode
       await addDoc(collection(db, "orders"), orderData);
       console.log("Order saved to Firebase:", orderId);
     } catch (e) {
       console.error("Error adding document: ", e);
-      alert("Note: Database not ready yet. Please enable Firestore in Console. Sending WhatsApp anyway.");
     }
 
     // Build detailed WhatsApp message
@@ -124,12 +113,9 @@ ${servicesList}
     const encodedMsg = encodeURIComponent(msg);
     const phoneNumber = "966571081589";
 
-    // Smart Redirection based on Device (User Suggested Logic)
     if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      // Mobile: Use wa.me which deep-links to the app
       window.location.href = `https://wa.me/${phoneNumber}?text=${encodedMsg}`;
     } else {
-      // Desktop: Open WhatsApp Web in a new tab for better compatibility
       window.open(`https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMsg}`, "_blank");
     }
   };
@@ -138,10 +124,44 @@ ${servicesList}
     document.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
   }, [i18n.language]);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleNext = async () => {
+    if (step < 3) {
+      setIsProcessing(true);
+      // Premium artificial delay for "preparing your order" feel
+      await new Promise(r => setTimeout(r, 600));
+      setStep(prev => prev + 1);
+      setIsProcessing(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
   const containerVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.8, x: "50%", y: "50%", transformOrigin: "bottom right" },
-    visible: { opacity: 1, scale: 1, x: 0, y: 0, transition: { type: "spring", damping: 25, stiffness: 200 } },
-    exit: { opacity: 0, scale: 0.8, x: "-50%", y: "50%", transition: { duration: 0.3 } }
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.22, 1, 0.36, 1], // Custom premium cubic-bezier
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
   };
 
   if (!hasChosenLanguage) {
@@ -202,16 +222,13 @@ ${servicesList}
             >
               <div className="text-center space-y-6 max-w-4xl">
                 <motion.h1
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
+                  variants={itemVariants}
                   className="text-5xl md:text-8xl neon-text leading-none"
                 >
                   <span className="text-primary">REO</span> SERVICES
                 </motion.h1>
                 <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
+                  variants={itemVariants}
                   className="text-lg md:text-2xl text-white/60 font-medium leading-relaxed max-w-2xl mx-auto"
                 >
                   {t('hero_subtitle')}
@@ -222,9 +239,7 @@ ${servicesList}
                 {services.map((s, i) => (
                   <motion.div
                     key={s.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
+                    variants={itemVariants}
                     className="h-full flex flex-col"
                   >
                     <TiltCard
@@ -259,16 +274,24 @@ ${servicesList}
                 ))}
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleNext}
-                disabled={selectedServices.length === 0}
-                className="btn-primary flex items-center gap-4 text-xl disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                {t('order_now')}
-                <ChevronRight className="w-6 h-6 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
-              </motion.button>
+              <motion.div variants={itemVariants} layoutId="order-flow-card" className="z-20">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleNext}
+                  disabled={selectedServices.length === 0 || isProcessing}
+                  className="btn-primary flex items-center gap-4 text-xl disabled:opacity-50 disabled:cursor-not-allowed group min-w-[280px]"
+                >
+                  {isProcessing ? (
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+                  ) : (
+                    <>
+                      {t('order_now')}
+                      <ChevronRight className="w-6 h-6 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </motion.button>
+              </motion.div>
             </motion.div>
           )}
 
@@ -276,13 +299,15 @@ ${servicesList}
           {step === 2 && (
             <motion.div
               key="step2"
+              layoutId="order-flow-card"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
               className="w-full max-w-3xl glass-card p-10 md:p-16 flex flex-col gap-10"
+              style={{ borderRadius: '2.5rem' }}
             >
-              <div className="flex items-center justify-between pb-8 border-b border-white/10">
+              <motion.div variants={itemVariants} className="flex items-center justify-between pb-8 border-b border-white/10">
                 <h2 className="text-3xl md:text-5xl neon-text">{t('name_label')}</h2>
                 <div className="flex -space-x-3 rtl:space-x-reverse">
                   {selectedServices.map(id => {
@@ -295,10 +320,10 @@ ${servicesList}
                     );
                   })}
                 </div>
-              </div>
+              </motion.div>
 
               <div className="space-y-8">
-                <div className="space-y-3">
+                <motion.div variants={itemVariants} className="space-y-3">
                   <label className="text-xs text-primary font-bold tracking-[0.2em] uppercase px-4">{t('name_label')}</label>
                   <input
                     type="text"
@@ -307,9 +332,9 @@ ${servicesList}
                     placeholder={t('name_placeholder')}
                     className="input-field"
                   />
-                </div>
+                </motion.div>
 
-                <div className="space-y-3">
+                <motion.div variants={itemVariants} className="space-y-3">
                   <div className="flex justify-between items-center px-4 flex-wrap gap-2">
                     <label className="text-xs text-primary font-bold tracking-[0.2em] uppercase">{t('location_label')}</label>
                     {locationSuccess && (
@@ -357,10 +382,9 @@ ${servicesList}
                       )}
                     </button>
                   </div>
-                </div>
+                </motion.div>
 
-                {/* PAYMENT METHOD */}
-                <div className="space-y-4">
+                <motion.div variants={itemVariants} className="space-y-4">
                   <label className="text-xs text-primary font-bold tracking-[0.2em] uppercase px-4">{t('payment_label')}</label>
                   <div className="grid grid-cols-2 gap-4">
                     <button
@@ -384,19 +408,21 @@ ${servicesList}
                       <span className={`font-bold tracking-wide ${paymentMethod === 'bank' ? 'text-white' : 'text-white/40'}`}>{t('bank')}</span>
                     </button>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <motion.div variants={itemVariants} className="flex gap-4 pt-4">
                 <button onClick={handleBack} className="btn-secondary flex-1">{t('modify_artifact')}</button>
                 <button
                   onClick={handleNext}
-                  disabled={!name.trim() || !address.trim() || !paymentMethod}
+                  disabled={!name.trim() || !address.trim() || !paymentMethod || isProcessing}
                   className="btn-primary flex-1 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
-                  {t('ready')}
+                  {isProcessing ? (
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+                  ) : t('ready')}
                 </button>
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
@@ -404,20 +430,22 @@ ${servicesList}
           {step === 3 && (
             <motion.div
               key="step3"
+              layoutId="order-flow-card"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
               className="w-full max-w-2xl glass-card p-10 md:p-14 text-center space-y-6"
+              style={{ borderRadius: '2.5rem' }}
             >
               <div className="space-y-4">
-                <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_-5px_var(--primary-glow)]">
+                <motion.div variants={itemVariants} className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_-5px_var(--primary-glow)]">
                   <CheckCircle2 className="w-12 h-12 text-primary" />
-                </div>
-                <h2 className="text-3xl md:text-5xl neon-text">{t('data_check')}</h2>
+                </motion.div>
+                <motion.h2 variants={itemVariants} className="text-3xl md:text-5xl neon-text">{t('data_check')}</motion.h2>
               </div>
 
-              <div className="glass-panel p-8 rounded-[2rem] text-left rtl:text-right space-y-6">
+              <motion.div variants={itemVariants} className="glass-panel p-8 rounded-[2rem] text-left rtl:text-right space-y-6">
                 <div className="flex justify-between border-b border-white/10 pb-4">
                   <span className="text-white/40 font-bold text-sm tracking-widest">{t('name_label')}</span>
                   <span className="font-bold text-lg text-white">{name || '---'}</span>
@@ -439,9 +467,9 @@ ${servicesList}
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex flex-col items-center gap-2 py-4">
+              <motion.div variants={itemVariants} className="flex flex-col items-center gap-2 py-4">
                 <span className="text-white/40 font-bold uppercase tracking-widest text-xs">{t('total_value')}</span>
                 <div className="flex items-baseline gap-2">
                   <span className="text-6xl font-black text-primary text-shadow-glow">
@@ -450,9 +478,9 @@ ${servicesList}
                   <span className="text-xl font-bold text-white/60">{t('sar')}</span>
                 </div>
                 <span className="text-xs text-white/40 font-bold bg-white/5 px-3 py-1 rounded-full">{t('negotiable')}</span>
-              </div>
+              </motion.div>
 
-              <div className="flex flex-col gap-4">
+              <motion.div variants={itemVariants} className="flex flex-col gap-4">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   onClick={handleSend}
@@ -464,7 +492,7 @@ ${servicesList}
                 <button onClick={handleBack} className="text-white/30 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest py-2">
                   {t('modify_artifact')}
                 </button>
-              </div>
+              </motion.div>
 
             </motion.div>
           )}
