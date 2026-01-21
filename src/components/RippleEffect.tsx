@@ -38,14 +38,14 @@ export const RippleEffect = () => {
                     <motion.div
                         key={ripple.id}
                         initial={{ scale: 0, opacity: 0.5 }}
-                        animate={{ scale: 3, opacity: 0 }}
+                        animate={{ scale: 2.8, opacity: 0 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1, ease: "easeOut" }}
                         style={{
                             position: 'absolute',
                             left: ripple.x,
                             top: ripple.y,
-                            transform: 'translate(-50%, -50%)',
+                            transform: 'translate3d(-50%, -50%, 0)',
                             width: '100px',
                             height: '100px',
                             borderRadius: '50%',

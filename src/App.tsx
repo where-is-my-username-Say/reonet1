@@ -154,7 +154,7 @@ ${servicesList}
   }
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden w-full flex flex-col font-sans text-base-content selection:bg-primary/30">
+    <div className="h-screen overflow-y-auto relative w-full flex flex-col font-sans text-base-content selection:bg-primary/30">
       <div className="fixed inset-0 z-0">
         <InteractiveBackground />
       </div>

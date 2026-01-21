@@ -58,7 +58,8 @@
 }
 
 html {
-  overflow-y: scroll;
+  overflow: hidden;
+  height: 100%;
   overflow-x: hidden;
   overscroll-behavior: none;
 }
@@ -69,7 +70,8 @@ body {
   margin: 0;
   user-select: none;
   -webkit-user-select: none;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
   overscroll-behavior: none;
 }
 
