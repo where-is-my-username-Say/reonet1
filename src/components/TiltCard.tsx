@@ -39,14 +39,14 @@ export const TiltCard = ({
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
-    const springConfig = { stiffness: 300, damping: 20 };
+    const springConfig = { stiffness: 150, damping: 20 };
     const xSpring = useSpring(x, springConfig);
     const ySpring = useSpring(y, springConfig);
 
-    const rotateX = useTransform(ySpring, [-1, 1], [30, -30]);
-    const rotateY = useTransform(xSpring, [-1, 1], [-30, 30]);
-    const translateX = useTransform(xSpring, [-1, 1], [20, -20]);
-    const translateY = useTransform(ySpring, [-1, 1], [20, -20]);
+    const rotateX = useTransform(ySpring, [-1, 1], [20, -20]);
+    const rotateY = useTransform(xSpring, [-1, 1], [-20, 20]);
+    const translateX = useTransform(xSpring, [-1, 1], [6, -6]);
+    const translateY = useTransform(ySpring, [-1, 1], [6, -6]);
 
     const requestPermissions = async () => {
         // Request Orientation
@@ -150,8 +150,8 @@ export const TiltCard = ({
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        const xPct = (mouseX / width) - 0.5;
-        const yPct = (mouseY / height) - 0.5;
+        const xPct = ((mouseX / width) - 0.5) * 2;
+        const yPct = ((mouseY / height) - 0.5) * 2;
 
         x.set(xPct);
         y.set(yPct);
@@ -248,15 +248,15 @@ export const TiltCard = ({
         delay: floatOffset * 0.5
     } as any), [floatSpeed, floatOffset]);
 
-    // Diffuse glare with tilt influence for physically accurate light behavior
-    const glareX = useTransform([xSpring, floatX], ([x, fX]: any) => {
-        const combined = (x as number) + (fX as number) * 0.2 + (x as number) * 0.15;
-        return `${(combined + 0.5) * 100}%`;
-    });
-    const glareY = useTransform([ySpring, floatY], ([y, fY]: any) => {
-        const combined = (y as number) + (fY as number) * 0.2 - (y as number) * 0.15;
-        return `${(combined + 0.5) * 100}%`;
-    });
+    // Simplified and smoothed glare positioning for realism
+    const rawGlareX = useTransform([xSpring, floatX], ([x, fX]: any) => (x as number) + (fX as number) * 0.1);
+    const rawGlareY = useTransform([ySpring, floatY], ([y, fY]: any) => (y as number) + (fY as number) * 0.1);
+
+    const smoothGlareX = useSpring(rawGlareX, { stiffness: 200, damping: 30 });
+    const smoothGlareY = useSpring(rawGlareY, { stiffness: 200, damping: 30 });
+
+    const glarePosRelativeX = useTransform(smoothGlareX, v => `${(v + 0.5) * 100}%`);
+    const glarePosRelativeY = useTransform(smoothGlareY, v => `${(v + 0.5) * 100}%`);
 
 
     return (
@@ -280,42 +280,43 @@ export const TiltCard = ({
                 animate={floatAnim}
                 transition={floatTransition}
             >
-                {/* Layer 2: Mouse Tilt Interaction */}
+                {/* Layer 2: Mouse Tilt Interaction (Preserve 3D) */}
                 <motion.div
-                    className="relative w-full h-full transform-style-3d"
-                    style={{ rotateX, rotateY, x: translateX, y: translateY } as any}
+                    className="relative w-full h-full"
+                    style={{
+                        rotateX,
+                        rotateY,
+                        x: translateX,
+                        y: translateY,
+                        transformStyle: 'preserve-3d'
+                    } as any}
                 >
+                    {/* 3D Box - FRONT FACE */}
                     <motion.div
-                        className="glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500"
-                        animate={{
+                        className="glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500 absolute inset-0"
+                        style={{
+                            transform: 'translateZ(10px)',
+                            backfaceVisibility: 'hidden',
                             backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.15)' : 'rgba(13, 13, 18, 0.4)',
                             borderColor: isSelected ? 'rgba(34, 197, 94, 0.6)' : 'rgba(255, 255, 255, 0.1)',
                             boxShadow: isSelected
                                 ? '0 0 40px -5px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(34, 197, 94, 0.1)'
                                 : '0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05)'
-                        }}
+                        } as any}
                     >
-                        {/* Complete glass reflection system: glare + environment + Fresnel */}
+                        {/* Optimized glass reflection */}
                         <motion.div
                             className="absolute inset-0 pointer-events-none"
                             style={{
                                 background: useMotionTemplate`
                                     radial-gradient(
-                                        420px circle at ${glareX} ${glareY},
-                                        rgba(255,248,235,0.175) 0%,
-                                        rgba(255,248,235,0.075) 22%,
-                                        rgba(255,248,235,0.02) 40%,
-                                        transparent 55%
-                                    ),
-                                    linear-gradient(
-                                        135deg,
-                                        rgba(255,255,255,0.06),
-                                        rgba(255,255,255,0.01) 40%,
-                                        rgba(255,255,255,0.075) 70%,
-                                        rgba(255,255,255,0.015)
+                                        180px circle at ${glarePosRelativeX} ${glarePosRelativeY},
+                                        rgba(255,255,255,0.35) 0%,
+                                        rgba(255,255,255,0.15) 25%,
+                                        transparent 60%
                                     ),
                                     radial-gradient(
-                                        900px circle at 50% 120%,
+                                        800px circle at 50% 120%,
                                         rgba(255,255,255,0.04),
                                         transparent 70%
                                     )
@@ -341,20 +342,79 @@ export const TiltCard = ({
                                 </motion.div>
                             </div>
                         )}
-
-                        {/* Secret Debug Overlay */}
-                        <div
-                            className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
-                        >
-                            {showDebug ? debugInfo : ""}
-                        </div>
-
-                        {/* Invisible trigger in corner */}
-                        <div
-                            className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
-                            onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
-                        />
                     </motion.div>
+
+                    {/* 3D Box - BACK FACE */}
+                    <div
+                        className="absolute inset-0 rounded-2xl"
+                        style={{
+                            transform: 'translateZ(-10px) rotateY(180deg)',
+                            backgroundColor: 'rgba(5, 5, 10, 0.8)',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            backfaceVisibility: 'hidden'
+                        }}
+                    />
+
+                    {/* 3D Box - SIDES */}
+                    {/* Right */}
+                    <div
+                        className="absolute top-0 bottom-0 rounded-r-2xl"
+                        style={{
+                            width: '20px',
+                            right: '-10px',
+                            transform: 'rotateY(90deg)',
+                            background: 'linear-gradient(to left, rgba(0,0,0,0.4), rgba(255,255,255,0.05))',
+                            borderRight: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                    />
+                    {/* Left */}
+                    <div
+                        className="absolute top-0 bottom-0 rounded-l-2xl"
+                        style={{
+                            width: '20px',
+                            left: '-10px',
+                            transform: 'rotateY(-90deg)',
+                            background: 'linear-gradient(to right, rgba(0,0,0,0.4), rgba(255,255,255,0.05))',
+                            borderLeft: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                    />
+                    {/* Top */}
+                    <div
+                        className="absolute left-0 right-0 rounded-t-2xl"
+                        style={{
+                            height: '20px',
+                            top: '-10px',
+                            transform: 'rotateX(90deg)',
+                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(255,255,255,0.05))',
+                            borderTop: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                    />
+                    {/* Bottom */}
+                    <div
+                        className="absolute left-0 right-0 rounded-b-2xl"
+                        style={{
+                            height: '20px',
+                            bottom: '-10px',
+                            transform: 'rotateX(-90deg)',
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.4), rgba(255,255,255,0.05))',
+                            borderBottom: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                    />
+
+                    {/* Secret Debug Overlay */}
+                    <div
+                        className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
+                        style={{ transform: 'translateZ(11px)' }}
+                    >
+                        {showDebug ? debugInfo : ""}
+                    </div>
+
+                    {/* Invisible trigger in corner */}
+                    <div
+                        className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
+                        style={{ transform: 'translateZ(11px)' }}
+                        onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
+                    />
                 </motion.div>
             </motion.div>
         </div>
