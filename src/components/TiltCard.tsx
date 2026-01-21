@@ -11,17 +11,6 @@ interface TiltCardProps {
     thickness?: number;
 }
 
-declare global {
-    interface DeviceOrientationEvent {
-        requestPermission?: () => Promise<'granted' | 'denied'>;
-    }
-    interface DeviceMotionEvent {
-        requestPermission?: () => Promise<'granted' | 'denied'>;
-    }
-    interface Window {
-        RelativeOrientationSensor?: any;
-    }
-}
 
 export const TiltCard = ({
     children,
@@ -33,7 +22,6 @@ export const TiltCard = ({
     thickness = 30
 }: TiltCardProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [debugInfo, setDebugInfo] = useState("");
     const [showDebug, setShowDebug] = useState(false);
     const [isLongPressed, setIsLongPressed] = useState(false);
     const longPressTimer = useRef<any>(null);
@@ -66,73 +54,8 @@ export const TiltCard = ({
     }, [floatOffset]);
 
 
-    const requestPermissions = async () => {
-        // Request Orientation
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-            try {
-                await (DeviceOrientationEvent as any).requestPermission();
-            } catch (error) {
-                console.error("Orientation error:", error);
-            }
-        }
-
-        // Request Motion
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-            try {
-                await (DeviceMotionEvent as any).requestPermission();
-            } catch (error) {
-                console.error("Motion error:", error);
-            }
-        }
-    };
 
     useEffect(() => {
-        let lastX = 0;
-        let lastY = 0;
-        let lastZ = 0;
-        let shakeThreshold = 15;
-
-        const handleMotion = (e: DeviceMotionEvent) => {
-            const acc = e.accelerationIncludingGravity;
-            if (!acc) return;
-
-            const curX = acc.x || 0;
-            const curY = acc.y || 0;
-            const curZ = acc.z || 0;
-
-            const delta = Math.abs(curX + curY + curZ - lastX - lastY - lastZ);
-            if (delta > shakeThreshold) {
-                // Kick the springs for shake effect
-                x.set((Math.random() - 0.5) * 0.4);
-                y.set((Math.random() - 0.5) * 0.4);
-                // Quickly reset to 0 to let springs take over
-                setTimeout(() => {
-                    x.set(0);
-                    y.set(0);
-                }, 50);
-            }
-
-            lastX = curX;
-            lastY = curY;
-            lastZ = curZ;
-        };
-
-        const handleOrientation = (e: DeviceOrientationEvent) => {
-            if (e.beta === null || e.gamma === null || isLongPressed) return;
-
-            // Sensitivity factor - making it easier to move
-            const rawX = e.gamma / 15;
-            const rawY = (e.beta - 45) / 15;
-
-            const xPct = Math.max(-0.6, Math.min(0.6, rawX));
-            const yPct = Math.max(-0.6, Math.min(0.6, rawY));
-
-            x.set(xPct);
-            y.set(yPct);
-
-            setDebugInfo(`B:${e.beta.toFixed(0)} G:${e.gamma.toFixed(0)}`);
-        };
-
         const decayInterval = setInterval(() => {
             if (!isLongPressed) {
                 const curX = x.get();
@@ -142,16 +65,7 @@ export const TiltCard = ({
             }
         }, 30);
 
-        if (typeof DeviceOrientationEvent !== 'undefined') {
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-        if (typeof DeviceMotionEvent !== 'undefined') {
-            window.addEventListener('devicemotion', handleMotion);
-        }
-
         return () => {
-            window.removeEventListener('deviceorientation', handleOrientation);
-            window.removeEventListener('devicemotion', handleMotion);
             clearInterval(decayInterval);
         };
     }, [x, y, isLongPressed]);
@@ -181,7 +95,6 @@ export const TiltCard = ({
     };
 
     const handleMouseDown = () => {
-        requestPermissions();
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
 
         longPressTimer.current = setTimeout(() => {
@@ -190,7 +103,6 @@ export const TiltCard = ({
     };
 
     const handleTouchStart = () => {
-        requestPermissions();
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
 
         longPressTimer.current = setTimeout(() => {
@@ -374,7 +286,6 @@ export const TiltCard = ({
                         <div
                             className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
                         >
-                            {showDebug ? debugInfo : ""}
                         </div>
 
                         {/* Invisible trigger in corner */}
