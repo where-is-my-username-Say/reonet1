@@ -272,7 +272,7 @@ export const TiltCard = ({
         <div
             ref={containerRef}
             className={`perspective-1000 w-full min-h-[380px] h-full ${className} select-none touch-pan-y`}
-            style={{ perspective: '1200px', cursor: 'pointer' }}
+            style={{ cursor: 'pointer' }}
             onMouseMove={onMouseMove}
             onMouseLeave={onMouseLeave}
             onMouseDown={handleMouseDown}

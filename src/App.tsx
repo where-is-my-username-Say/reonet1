@@ -141,22 +141,9 @@ ${servicesList}
   };
 
   const containerVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.22, 1, 0.36, 1], // Custom premium cubic-bezier
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.95,
-      transition: { duration: 0.3 }
-    }
+    hidden: { opacity: 0, scale: 0.8, x: "50%", y: "50%", transformOrigin: "bottom right" },
+    visible: { opacity: 1, scale: 1, x: 0, y: 0, transition: { type: "spring", damping: 25, stiffness: 200 } },
+    exit: { opacity: 0, scale: 0.8, x: "-50%", y: "50%", transition: { duration: 0.3 } }
   };
 
   const itemVariants = {
