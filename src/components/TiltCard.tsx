@@ -438,3 +438,4 @@ export const TiltCard = ({
             </motion.div>
         </div>
     );
+};
