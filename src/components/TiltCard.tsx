@@ -294,7 +294,7 @@ export const TiltCard = ({
                 >
                     {/* FRONT */}
                     <div
-                        className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-white/10"
+                        className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 border-white/10"
                         style={{ backfaceVisibility: 'hidden' }}
                     >
                         <motion.div
