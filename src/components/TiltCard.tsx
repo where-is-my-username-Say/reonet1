@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, type MouseEvent } from 'react';
-import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform, animate } from 'framer-motion';
 
 interface TiltCardProps {
     children: React.ReactNode;
@@ -232,8 +232,41 @@ export const TiltCard = ({
         if (onClick) onClick();
     };
 
-    const glareX = useTransform(xSpring, [-0.5, 0.5], ["0%", "100%"]);
-    const glareY = useTransform(ySpring, [-0.5, 0.5], ["0%", "100%"]);
+    // Floating motion values for glare sync
+    const floatX = useMotionValue(0);
+    const floatY = useMotionValue(0);
+
+    const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    useEffect(() => {
+        if (isPC) {
+            const controlsX = animate(floatX, [0, 1, 0], {
+                duration: 5 / floatSpeed,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: floatOffset * 0.5
+            });
+            const controlsY = animate(floatY, [0, -1, 0, 1, 0], {
+                duration: 7 / floatSpeed,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: floatOffset * 0.3
+            });
+            return () => {
+                controlsX.stop();
+                controlsY.stop();
+            };
+        }
+    }, [isPC, floatSpeed, floatOffset, floatX, floatY]);
+
+    const glareX = useTransform([xSpring, floatX], ([latestX, fX]: any) => {
+        const combined = (latestX as number) + (fX as number) * 0.2;
+        return `${(combined + 0.5) * 100}%`;
+    });
+    const glareY = useTransform([ySpring, floatY], ([latestY, fY]: any) => {
+        const combined = (latestY as number) + (fY as number) * 0.2;
+        return `${(combined + 0.5) * 100}%`;
+    });
 
     return (
         <div
@@ -253,67 +286,80 @@ export const TiltCard = ({
             <motion.div
                 className="relative w-full h-full transform-style-3d"
                 style={{ rotateX, rotateY }}
-                animate={!/Android|iPhone|iPad/i.test(navigator.userAgent) ? {
-                    y: [0, -15, 0],
-                    rotateZ: [floatOffset - 1.5, floatOffset + 1.5, floatOffset - 1.5],
-                    rotateX: [0, 2, 0],
+                animate={isPC ? {
+                    y: [0, -12, 0],
+                    z: [0, 25, 0],
+                    rotateX: [0, floatOffset % 2 === 0 ? 4 : -4, 0],
+                    rotateY: [0, floatOffset % 2 === 0 ? -4 : 4, 0],
+                    rotateZ: [-1, 1, -1],
+                    // We can't directly animate x/y motion values in the same block easily
+                    // But we can use another motion div or just animate these float values
                 } : {}}
                 transition={{
-                    duration: 4 / floatSpeed,
+                    duration: 5 / floatSpeed,
                     repeat: Infinity,
                     ease: "easeInOut",
-                    delay: floatOffset % 2
+                    delay: floatOffset * 0.5
                 }}
             >
+                {/* Secondary container to animate glare independently if needed, 
+                    or we just pulse the floatX/Y values using a useEffect */}
                 <motion.div
-                    className="w-full h-full transform-style-3d relative"
-                    style={{ rotateY: flipRotation }}
+                    className="w-full h-full transform-style-3d"
+                    animate={isPC ? {
+                        opacity: [1, 1] // dummy to trigger animate
+                    } : {}}
                 >
-                    {/* FRONT */}
-                    <div
-                        className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-8 overflow-hidden h-full"
-                        style={{ backfaceVisibility: 'hidden' }}
+                    <motion.div
+                        className="w-full h-full transform-style-3d relative"
+                        style={{ rotateY: flipRotation }}
                     >
-                        <motion.div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                                background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(255,255,255,0.15), transparent 80%)`
-                            }}
-                        />
-                        <div className="relative z-10 w-full flex flex-col items-center gap-6">
-                            {children}
-                        </div>
-
-                        {/* Secret Debug Overlay */}
+                        {/* FRONT */}
                         <div
-                            className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
+                            className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-8 overflow-hidden h-full"
+                            style={{ backfaceVisibility: 'hidden' }}
                         >
-                            {showDebug ? debugInfo : ""}
+                            <motion.div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(255,255,255,0.15), transparent 80%)`
+                                }}
+                            />
+                            <div className="relative z-10 w-full flex flex-col items-center gap-6">
+                                {children}
+                            </div>
+
+                            {/* Secret Debug Overlay */}
+                            <div
+                                className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
+                            >
+                                {showDebug ? debugInfo : ""}
+                            </div>
+
+                            {/* Invisible trigger in corner */}
+                            <div
+                                className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
+                                onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
+                            />
                         </div>
 
-                        {/* Invisible trigger in corner */}
+                        {/* BACK */}
                         <div
-                            className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
-                            onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
-                        />
-                    </div>
-
-                    {/* BACK */}
-                    <div
-                        className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-8 bg-green-500/10 border-green-500/50 overflow-hidden shadow-[0_0_50px_-10px_rgba(34,197,94,0.3)] h-full"
-                        style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
-                    >
-                        <motion.div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                                background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(74, 222, 128, 0.25), transparent 80%)`
-                            }}
-                        />
-                        <div className="relative z-10 w-full flex flex-col items-center gap-6 opacity-90">
-                            {children}
+                            className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-8 bg-green-500/10 border-green-500/50 overflow-hidden shadow-[0_0_50px_-10px_rgba(34,197,94,0.3)] h-full"
+                            style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
+                        >
+                            <motion.div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(74, 222, 128, 0.25), transparent 80%)`
+                                }}
+                            />
+                            <div className="relative z-10 w-full flex flex-col items-center gap-6 opacity-90">
+                                {children}
+                            </div>
+                            <div className="absolute top-6 right-6 w-5 h-5 rounded-full bg-green-500 shadow-[0_0_20px_rgba(34,197,94,1)] border-2 border-white/20" />
                         </div>
-                        <div className="absolute top-6 right-6 w-5 h-5 rounded-full bg-green-500 shadow-[0_0_20px_rgba(34,197,94,1)] border-2 border-white/20" />
-                    </div>
+                    </motion.div>
                 </motion.div>
             </motion.div>
         </div>
