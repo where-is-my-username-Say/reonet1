@@ -312,14 +312,6 @@ export const TiltCard = ({
                     <motion.div
                         className="w-full h-full transform-style-3d relative"
                         style={{ rotateY: flipRotation }}
-                        animate={isSelected ? {
-                            z: [0, 80, 0],
-                            scale: [1, 1.1, 1],
-                        } : {
-                            z: [0, 80, 0],
-                            scale: [1, 1.1, 1],
-                        }}
-                        transition={{ duration: 0.6, ease: "backOut" }}
                     >
                         {/* FRONT */}
                         <div
