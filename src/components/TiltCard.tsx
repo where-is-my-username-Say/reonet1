@@ -8,6 +8,7 @@ interface TiltCardProps {
     isSelected?: boolean;
     floatOffset?: number;
     floatSpeed?: number;
+    thickness?: number;
 }
 
 declare global {
@@ -28,7 +29,8 @@ export const TiltCard = ({
     className = "",
     isSelected = false,
     floatOffset = 0,
-    floatSpeed = 1
+    floatSpeed = 1,
+    thickness = 12
 }: TiltCardProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [debugInfo, setDebugInfo] = useState("");
@@ -291,93 +293,148 @@ export const TiltCard = ({
                 className="relative w-full h-full transform-style-3d"
                 style={{ rotateX, rotateY, x: translateX, y: translateY } as any}
             >
-                {/* Single Face Card with Smooth Corner selection */}
-                <div
-                    className="absolute inset-0 glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-colors duration-700"
-                    style={{
-                        borderColor: isSelected ? 'rgba(34, 197, 94, 0.6)' : 'rgba(255, 255, 255, 0.1)',
-                        backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.05)' : 'rgba(13, 13, 18, 0.4)'
-                    }}
-                >
-                    {/* Selection Layer (Green appearing from corner) */}
-                    <motion.div
-                        className="absolute w-[150%] h-[150%] pointer-events-none rounded-full blur-[100px]"
-                        initial={false}
-                        animate={{
-                            scale: isSelected ? 1 : 0,
-                            opacity: isSelected ? 0.3 : 0,
-                        }}
-                        transition={{ duration: 1, ease: "easeOut" }}
+                {/* 3D Box Container */}
+                <div className="relative w-full h-full transform-style-3d">
+                    {/* FRONT FACE (Main Content) */}
+                    <div
+                        className="absolute inset-0 glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-colors duration-700 z-10"
                         style={{
-                            background: 'radial-gradient(circle, rgba(34, 197, 94, 0.8) 0%, transparent 70%)',
-                            ...selectionCorner
-                        } as any}
-                    />
-
-                    {/* High-End Realistic Lighting Layers */}
-                    <motion.div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                            background: useMotionTemplate`
-                                radial-gradient(
-                                    420px circle at ${glareX} ${glareY},
-                                    rgba(255,248,235,0.175) 0%,
-                                    rgba(255,248,235,0.075) 22%,
-                                    rgba(255,248,235,0.02) 40%,
-                                    transparent 55%
-                                ),
-                                linear-gradient(
-                                    135deg,
-                                    rgba(255,255,255,0.06),
-                                    rgba(255,255,255,0.01) 40%,
-                                    rgba(255,255,255,0.075) 70%,
-                                    rgba(255,255,255,0.015)
-                                ),
-                                radial-gradient(
-                                    900px circle at 50% 120%,
-                                    rgba(255,255,255,0.04),
-                                    transparent 70%
-                                )
-                            `,
-                            boxShadow: isSelected ? 'inset 0 0 60px rgba(34, 197, 94, 0.2)' : 'inset 0 0 40px rgba(255,255,255,0.06)'
+                            borderColor: isSelected ? 'rgba(34, 197, 94, 0.6)' : 'rgba(255, 255, 255, 0.1)',
+                            backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.05)' : 'rgba(13, 13, 18, 0.4)',
+                            transform: `translateZ(${thickness / 2}px)`,
+                            backfaceVisibility: 'hidden'
                         }}
-                    />
-
-                    <div className="relative z-10 w-full flex flex-col items-center gap-4">
-                        {children}
-                    </div>
-
-                    {/* Selection Status Indicator (animated checkmark) */}
-                    <motion.div
-                        initial={false}
-                        animate={{
-                            scale: isSelected ? 1 : 0,
-                            opacity: isSelected ? 1 : 0,
-                            y: isSelected ? 0 : 20
-                        }}
-                        className="absolute top-6 right-6"
                     >
-                        <div className="w-8 h-8 rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.6)]">
-                            <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
+                        {/* Selection Layer (Green appearing from corner) */}
+                        <motion.div
+                            className="absolute w-[150%] h-[150%] pointer-events-none rounded-full blur-[100px]"
+                            initial={false}
+                            animate={{
+                                scale: isSelected ? 1 : 0,
+                                opacity: isSelected ? 0.3 : 0,
+                            }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                            style={{
+                                background: 'radial-gradient(circle, rgba(34, 197, 94, 0.8) 0%, transparent 70%)',
+                                ...selectionCorner
+                            } as any}
+                        />
+
+                        {/* High-End Realistic Lighting Layers */}
+                        <motion.div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: useMotionTemplate`
+                                    radial-gradient(
+                                        420px circle at ${glareX} ${glareY},
+                                        rgba(255,248,235,0.175) 0%,
+                                        rgba(255,248,235,0.075) 22%,
+                                        rgba(255,248,235,0.02) 40%,
+                                        transparent 55%
+                                    ),
+                                    linear-gradient(
+                                        135deg,
+                                        rgba(255,255,255,0.06),
+                                        rgba(255,255,255,0.01) 40%,
+                                        rgba(255,255,255,0.075) 70%,
+                                        rgba(255,255,255,0.015)
+                                    ),
+                                    radial-gradient(
+                                        900px circle at 50% 120%,
+                                        rgba(255,255,255,0.04),
+                                        transparent 70%
+                                    )
+                                `,
+                                boxShadow: isSelected ? 'inset 0 0 60px rgba(34, 197, 94, 0.2)' : 'inset 0 0 40px rgba(255,255,255,0.06)'
+                            }}
+                        />
+
+                        <div className="relative z-10 w-full flex flex-col items-center gap-4">
+                            {children}
                         </div>
-                    </motion.div>
 
-                    {/* Secret Debug Overlay */}
-                    <div
-                        className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
-                    >
-                        {showDebug ? debugInfo : ""}
+                        {/* Selection Status Indicator (animated checkmark) */}
+                        <motion.div
+                            initial={false}
+                            animate={{
+                                scale: isSelected ? 1 : 0,
+                                opacity: isSelected ? 1 : 0,
+                                y: isSelected ? 0 : 20
+                            }}
+                            className="absolute top-6 right-6"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.6)]">
+                                <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                        </motion.div>
+
+                        {/* Secret Debug Overlay */}
+                        <div
+                            className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
+                        >
+                            {showDebug ? debugInfo : ""}
+                        </div>
+
+                        {/* Invisible trigger in corner */}
+                        <div
+                            className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
+                            onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
+                        />
                     </div>
 
-                    {/* Invisible trigger in corner */}
+                    {/* SIDE FACES (Thickness) */}
+                    {/* Right Side */}
                     <div
-                        className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
-                        onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
+                        className="absolute h-[calc(100%-24px)] top-[12px] bg-[#0c0c12]/80 border-y border-r border-white/5"
+                        style={{
+                            width: `${thickness}px`,
+                            right: `-${thickness / 2}px`,
+                            transform: `rotateY(90deg) translateZ(0px)`,
+                            background: 'linear-gradient(to left, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                        }}
+                    />
+                    {/* Left Side */}
+                    <div
+                        className="absolute h-[calc(100%-24px)] top-[12px] bg-[#0c0c12]/80 border-y border-l border-white/5"
+                        style={{
+                            width: `${thickness}px`,
+                            left: `-${thickness / 2}px`,
+                            transform: `rotateY(-90deg) translateZ(0px)`,
+                            background: 'linear-gradient(to right, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                        }}
+                    />
+                    {/* Top Side */}
+                    <div
+                        className="absolute w-[calc(100%-24px)] left-[12px] bg-[#0c0c12]/80 border-x border-t border-white/5"
+                        style={{
+                            height: `${thickness}px`,
+                            top: `-${thickness / 2}px`,
+                            transform: `rotateX(90deg) translateZ(0px)`,
+                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                        }}
+                    />
+                    {/* Bottom Side */}
+                    <div
+                        className="absolute w-[calc(100%-24px)] left-[12px] bg-[#0c0c12]/80 border-x border-b border-white/5"
+                        style={{
+                            height: `${thickness}px`,
+                            bottom: `-${thickness / 2}px`,
+                            transform: `rotateX(-90deg) translateZ(0px)`,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                        }}
+                    />
+
+                    {/* BACK FACE (For full volume depth) */}
+                    <div
+                        className="absolute inset-0 bg-[#05050a]/90 rounded-2xl border border-white/5 shadow-2xl"
+                        style={{
+                            transform: `translateZ(-${thickness / 2}px) rotateY(180deg)`,
+                            backfaceVisibility: 'hidden'
+                        }}
                     />
                 </div>
             </motion.div>
         </div>
     );
-};
