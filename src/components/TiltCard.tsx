@@ -12,6 +12,9 @@ declare global {
     interface DeviceOrientationEvent {
         requestPermission?: () => Promise<'granted' | 'denied'>;
     }
+    interface DeviceMotionEvent {
+        requestPermission?: () => Promise<'granted' | 'denied'>;
+    }
     interface Window {
         RelativeOrientationSensor?: any;
     }
@@ -19,18 +22,21 @@ declare global {
 
 export const TiltCard = ({ children, onClick, className = "", isSelected = false }: TiltCardProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [isGyroEnabled, setIsGyroEnabled] = useState(false);
     const [debugInfo, setDebugInfo] = useState("");
     const [showDebug, setShowDebug] = useState(false);
+    const [isLongPressed, setIsLongPressed] = useState(false);
+    const longPressTimer = useRef<any>(null);
 
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
-    const xSpring = useSpring(x, { stiffness: 150, damping: 20 });
-    const ySpring = useSpring(y, { stiffness: 150, damping: 20 });
+    // Spring settings for the "springy" return feel
+    const springConfig = { stiffness: 300, damping: 20 };
+    const xSpring = useSpring(x, springConfig);
+    const ySpring = useSpring(y, springConfig);
 
-    const rotateX = useTransform(ySpring, [-0.5, 0.5], ["15deg", "-15deg"]);
-    const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
+    const rotateX = useTransform(ySpring, [-1, 1], ["25deg", "-25deg"]);
+    const rotateY = useTransform(xSpring, [-1, 1], ["-25deg", "25deg"]);
 
     const flipRotation = useSpring(isSelected ? 180 : 0, { stiffness: 200, damping: 25 });
 
@@ -38,32 +44,67 @@ export const TiltCard = ({ children, onClick, className = "", isSelected = false
         flipRotation.set(isSelected ? 180 : 0);
     }, [isSelected, flipRotation]);
 
-    const requestGyroPermission = async () => {
+    const requestPermissions = async () => {
+        // Request Orientation
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
             try {
-                const permission = await (DeviceOrientationEvent as any).requestPermission();
-                if (permission === 'granted') {
-                    setIsGyroEnabled(true);
-                    setDebugInfo("iOS Pro Granted");
-                }
+                await (DeviceOrientationEvent as any).requestPermission();
             } catch (error) {
-                setDebugInfo("iOS Error: " + error);
+                console.error("Orientation error:", error);
             }
-        } else {
-            setIsGyroEnabled(true);
-            setDebugInfo("Gyro Active");
+        }
+
+        // Request Motion
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+            try {
+                await (DeviceMotionEvent as any).requestPermission();
+            } catch (error) {
+                console.error("Motion error:", error);
+            }
         }
     };
 
     useEffect(() => {
+        let lastX = 0;
+        let lastY = 0;
+        let lastZ = 0;
+        let shakeThreshold = 15;
+
+        const handleMotion = (e: DeviceMotionEvent) => {
+            const acc = e.accelerationIncludingGravity;
+            if (!acc) return;
+
+            const curX = acc.x || 0;
+            const curY = acc.y || 0;
+            const curZ = acc.z || 0;
+
+            const delta = Math.abs(curX + curY + curZ - lastX - lastY - lastZ);
+            if (delta > shakeThreshold) {
+                // Kick the springs for shake effect
+                x.set((Math.random() - 0.5) * 0.4);
+                y.set((Math.random() - 0.5) * 0.4);
+                // Quickly reset to 0 to let springs take over
+                setTimeout(() => {
+                    x.set(0);
+                    y.set(0);
+                }, 50);
+            }
+
+            lastX = curX;
+            lastY = curY;
+            lastZ = curZ;
+        };
+
         const handleOrientation = (e: DeviceOrientationEvent) => {
-            if (e.beta === null || e.gamma === null) return;
+            if (e.beta === null || e.gamma === null || isLongPressed) return;
 
-            const rawX = e.beta / 3;
-            const rawY = e.gamma / 3;
+            // Sensitivity factor - making it easier to move
+            // We use gamma (tilt left/right) and beta (tilt forward/backward)
+            const rawX = e.gamma / 15;
+            const rawY = (e.beta - 45) / 15; // Offset by 45 for natural holding angle
 
-            const xPct = Math.max(-0.5, Math.min(0.5, rawY / 30));
-            const yPct = Math.max(-0.5, Math.min(0.5, rawX / 30));
+            const xPct = Math.max(-0.6, Math.min(0.6, rawX));
+            const yPct = Math.max(-0.6, Math.min(0.6, rawY));
 
             x.set(xPct);
             y.set(yPct);
@@ -71,16 +112,32 @@ export const TiltCard = ({ children, onClick, className = "", isSelected = false
             setDebugInfo(`B:${e.beta.toFixed(0)} G:${e.gamma.toFixed(0)}`);
         };
 
-        // Basic listener for non-permission devices (Android)
-        if (typeof DeviceOrientationEvent !== 'undefined' && (typeof (DeviceOrientationEvent as any).requestPermission !== 'function' || isGyroEnabled)) {
+        // Continuous decay to 0 for "slowly became normal again"
+        const decayInterval = setInterval(() => {
+            if (!isLongPressed) {
+                const curX = x.get();
+                const curY = y.get();
+                if (Math.abs(curX) > 0.01) x.set(curX * 0.94);
+                if (Math.abs(curY) > 0.01) y.set(curY * 0.94);
+            }
+        }, 30);
+
+        if (typeof DeviceOrientationEvent !== 'undefined') {
             window.addEventListener('deviceorientation', handleOrientation);
         }
+        if (typeof DeviceMotionEvent !== 'undefined') {
+            window.addEventListener('devicemotion', handleMotion);
+        }
 
-        return () => window.removeEventListener('deviceorientation', handleOrientation);
-    }, [x, y, isGyroEnabled]);
+        return () => {
+            window.removeEventListener('deviceorientation', handleOrientation);
+            window.removeEventListener('devicemotion', handleMotion);
+            clearInterval(decayInterval);
+        };
+    }, [x, y, isLongPressed]);
 
     const onMouseMove = (e: MouseEvent) => {
-        if (!containerRef.current) return;
+        if (!containerRef.current || /Android|iPhone|iPad/i.test(navigator.userAgent) || isLongPressed) return;
 
         const rect = containerRef.current.getBoundingClientRect();
         const width = rect.width;
@@ -96,13 +153,73 @@ export const TiltCard = ({ children, onClick, className = "", isSelected = false
         y.set(yPct);
     };
 
+    const handleInteractionEnd = () => {
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+        setIsLongPressed(false);
+        x.set(0);
+        y.set(0);
+    };
+
+    const handleMouseDown = () => {
+        requestPermissions();
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+
+        longPressTimer.current = setTimeout(() => {
+            setIsLongPressed(true);
+        }, 200);
+    };
+
+    const handleTouchStart = () => {
+        requestPermissions();
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+
+        longPressTimer.current = setTimeout(() => {
+            setIsLongPressed(true);
+            if ('vibrate' in navigator) navigator.vibrate(10);
+        }, 200);
+    };
+
+    const handleGlobalMove = (e: any) => {
+        if (!isLongPressed || !containerRef.current) return;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+        const centerX = rect.left + width / 2;
+        const centerY = rect.top + height / 2;
+
+        const diffX = (clientX - centerX) / (width * 1.5);
+        const diffY = (clientY - centerY) / (height * 1.5);
+
+        x.set(Math.max(-1, Math.min(1, diffX)));
+        y.set(Math.max(-1, Math.min(1, diffY)));
+    };
+
+    useEffect(() => {
+        if (isLongPressed) {
+            window.addEventListener('mousemove', handleGlobalMove);
+            window.addEventListener('mouseup', handleInteractionEnd);
+            window.addEventListener('touchmove', handleGlobalMove);
+            window.addEventListener('touchend', handleInteractionEnd);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleGlobalMove);
+            window.removeEventListener('mouseup', handleInteractionEnd);
+            window.removeEventListener('touchmove', handleGlobalMove);
+            window.removeEventListener('touchend', handleInteractionEnd);
+        };
+    }, [isLongPressed]);
+
     const onMouseLeave = () => {
+        if (/Android|iPhone|iPad/i.test(navigator.userAgent) || isLongPressed) return;
         x.set(0);
         y.set(0);
     };
 
     const handleInteraction = () => {
-        requestGyroPermission();
         if (onClick) onClick();
     };
 
@@ -112,11 +229,17 @@ export const TiltCard = ({ children, onClick, className = "", isSelected = false
     return (
         <div
             ref={containerRef}
-            className={`perspective-1000 w-full min-h-[380px] h-full ${className}`}
+            className={`perspective-1000 w-full min-h-[380px] h-full ${className} select-none touch-none`}
             style={{ perspective: '1200px', cursor: 'pointer' }}
             onMouseMove={onMouseMove}
             onMouseLeave={onMouseLeave}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleInteractionEnd}
             onClick={handleInteraction}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleInteractionEnd}
+            onTouchCancel={handleInteractionEnd}
+            onContextMenu={(e) => isLongPressed && e.preventDefault()}
         >
             <motion.div
                 className="relative w-full h-full transform-style-3d"
@@ -141,7 +264,7 @@ export const TiltCard = ({ children, onClick, className = "", isSelected = false
                             {children}
                         </div>
 
-                        {/* Secret Debug Overlay (Tap/Hold to see logic info) */}
+                        {/* Secret Debug Overlay */}
                         <div
                             className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
                         >
