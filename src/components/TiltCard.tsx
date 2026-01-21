@@ -271,9 +271,7 @@ export const TiltCard = ({
         return `${(combined + 0.5) * 100}%`;
     });
 
-    // Specular reflection positions (string format for CSS)
-    const specXPercent = useTransform(specXSpring, v => `${v}%`);
-    const specYPercent = useTransform(specYSpring, v => `${v}%`);
+
 
     return (
         <div
