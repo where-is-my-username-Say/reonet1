@@ -47,11 +47,6 @@ export const TiltCard = ({
     const rotateX = useTransform(ySpring, [-1, 1], ["25deg", "-25deg"]);
     const rotateY = useTransform(xSpring, [-1, 1], ["-25deg", "25deg"]);
 
-    const flipRotation = useSpring(isSelected ? 180 : 0, { stiffness: 200, damping: 25 });
-
-    useEffect(() => {
-        flipRotation.set(isSelected ? 180 : 0);
-    }, [isSelected, flipRotation]);
 
     const requestPermissions = async () => {
         // Request Orientation
@@ -310,11 +305,9 @@ export const TiltCard = ({
                 >
                     <motion.div
                         className="w-full h-full transform-style-3d relative"
-                        style={{ rotateY: flipRotation }}
                     >
-                        {/* FRONT */}
                         <div
-                            className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full"
+                            className={`absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-300 ${isSelected ? 'border-primary bg-primary/20 shadow-[0_0_30px_rgba(var(--primary-glow-rgb),0.2)]' : 'border-white/10'}`}
                             style={{ backfaceVisibility: 'hidden' }}
                         >
                             <motion.div
@@ -326,6 +319,21 @@ export const TiltCard = ({
                             <div className="relative z-10 w-full flex flex-col items-center gap-4">
                                 {children}
                             </div>
+
+                            {/* Selection Checkmark Overlay */}
+                            {isSelected && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="absolute top-4 right-4 z-20"
+                                >
+                                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_15px_var(--primary-glow)]">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </motion.div>
+                            )}
 
                             {/* Secret Debug Overlay */}
                             <div
@@ -339,23 +347,6 @@ export const TiltCard = ({
                                 className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
                                 onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
                             />
-                        </div>
-
-                        {/* BACK */}
-                        <div
-                            className="absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 bg-green-500/10 border-green-500/50 overflow-hidden shadow-[0_0_50px_-10px_rgba(34,197,94,0.3)] h-full"
-                            style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
-                        >
-                            <motion.div
-                                className="absolute inset-0 pointer-events-none"
-                                style={{
-                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(74, 222, 128, 0.4), transparent 80%)`
-                                }}
-                            />
-                            <div className="relative z-10 w-full flex flex-col items-center gap-6 opacity-90">
-                                {children}
-                            </div>
-                            <div className="absolute top-6 right-6 w-5 h-5 rounded-full bg-green-500 shadow-[0_0_20px_rgba(34,197,94,1)] border-2 border-white/20" />
                         </div>
                     </motion.div>
                 </motion.div>
