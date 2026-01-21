@@ -39,14 +39,14 @@ export const TiltCard = ({
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
-    const springConfig = { stiffness: 150, damping: 20 };
+    const springConfig = { stiffness: 300, damping: 25 };
     const xSpring = useSpring(x, springConfig);
     const ySpring = useSpring(y, springConfig);
 
-    const rotateX = useTransform(ySpring, [-1, 1], [20, -20]);
-    const rotateY = useTransform(xSpring, [-1, 1], [-20, 20]);
-    const translateX = useTransform(xSpring, [-1, 1], [6, -6]);
-    const translateY = useTransform(ySpring, [-1, 1], [6, -6]);
+    const rotateX = useTransform(ySpring, [-1, 1], [30, -30]);
+    const rotateY = useTransform(xSpring, [-1, 1], [-30, 30]);
+    const translateX = useTransform(xSpring, [-1, 1], [20, -20]);
+    const translateY = useTransform(ySpring, [-1, 1], [20, -20]);
 
     const requestPermissions = async () => {
         // Request Orientation
@@ -248,9 +248,15 @@ export const TiltCard = ({
         delay: floatOffset * 0.5
     } as any), [floatSpeed, floatOffset]);
 
-    // Simplified and smoothed glare positioning for realism
-    const rawGlareX = useTransform([xSpring, floatX], ([x, fX]: any) => (x as number) + (fX as number) * 0.1);
-    const rawGlareY = useTransform([ySpring, floatY], ([y, fY]: any) => (y as number) + (fY as number) * 0.1);
+    // Multi-layered glare with tilt bias for physically accurate light behavior
+    const rawGlareX = useTransform([xSpring, floatX], ([x, fX]: any) => {
+        const combined = (x as number) + (fX as number) * 0.2 + (x as number) * 0.15;
+        return combined;
+    });
+    const rawGlareY = useTransform([ySpring, floatY], ([y, fY]: any) => {
+        const combined = (y as number) + (fY as number) * 0.2 - (y as number) * 0.15;
+        return combined;
+    });
 
     const smoothGlareX = useSpring(rawGlareX, { stiffness: 200, damping: 30 });
     const smoothGlareY = useSpring(rawGlareY, { stiffness: 200, damping: 30 });
@@ -304,19 +310,27 @@ export const TiltCard = ({
                                 : '0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05)'
                         } as any}
                     >
-                        {/* Optimized glass reflection */}
+                        {/* Restored complex glass reflection: glare + environment + Fresnel */}
                         <motion.div
                             className="absolute inset-0 pointer-events-none"
                             style={{
                                 background: useMotionTemplate`
                                     radial-gradient(
-                                        180px circle at ${glarePosRelativeX} ${glarePosRelativeY},
-                                        rgba(255,255,255,0.35) 0%,
-                                        rgba(255,255,255,0.15) 25%,
-                                        transparent 60%
+                                        420px circle at ${glarePosRelativeX} ${glarePosRelativeY},
+                                        rgba(255,248,235,0.175) 0%,
+                                        rgba(255,248,235,0.075) 22%,
+                                        rgba(255,248,235,0.02) 40%,
+                                        transparent 55%
+                                    ),
+                                    linear-gradient(
+                                        135deg,
+                                        rgba(255,255,255,0.06),
+                                        rgba(255,255,255,0.01) 40%,
+                                        rgba(255,255,255,0.075) 70%,
+                                        rgba(255,255,255,0.015)
                                     ),
                                     radial-gradient(
-                                        800px circle at 50% 120%,
+                                        900px circle at 50% 120%,
                                         rgba(255,255,255,0.04),
                                         transparent 70%
                                     )
