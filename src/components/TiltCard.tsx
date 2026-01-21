@@ -281,7 +281,7 @@ export const TiltCard = ({
                 {/* Layer 2: Mouse Tilt Interaction */}
                 <motion.div
                     className="relative w-full h-full transform-style-3d"
-                    style={{ rotateX, rotateY }}
+                    style={{ rotateX, rotateY } as any}
                 >
                     <motion.div
                         className="glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500"
