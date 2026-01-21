@@ -39,13 +39,20 @@ export const TiltCard = ({
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
-    // Spring settings for the "springy" return feel
     const springConfig = { stiffness: 300, damping: 20 };
     const xSpring = useSpring(x, springConfig);
     const ySpring = useSpring(y, springConfig);
 
     const rotateX = useTransform(ySpring, [-1, 1], ["25deg", "-25deg"]);
     const rotateY = useTransform(xSpring, [-1, 1], ["-25deg", "25deg"]);
+
+    // Specular reflection coordinates (angle-based, sharp highlight)
+    const specX = useTransform(xSpring, [-1, 1], [30, 70]);
+    const specY = useTransform(ySpring, [-1, 1], [30, 70]);
+
+    // Add lag to specular for realism
+    const specXSpring = useSpring(specX, { stiffness: 120, damping: 25 });
+    const specYSpring = useSpring(specY, { stiffness: 120, damping: 25 });
 
 
     const requestPermissions = async () => {
@@ -254,7 +261,7 @@ export const TiltCard = ({
         }
     }, [isPC, floatSpeed, floatOffset, floatX, floatY]);
 
-    // Realistic glare with tilt influence for physically accurate light behavior
+    // Diffuse glare with tilt influence for physically accurate light behavior
     const glareX = useTransform([xSpring, floatX], ([x, fX]: any) => {
         const combined = (x as number) + (fX as number) * 0.2 + (x as number) * 0.15;
         return `${(combined + 0.5) * 100}%`;
@@ -263,6 +270,10 @@ export const TiltCard = ({
         const combined = (y as number) + (fY as number) * 0.2 - (y as number) * 0.15;
         return `${(combined + 0.5) * 100}%`;
     });
+
+    // Specular reflection positions (string format for CSS)
+    const specXPercent = useTransform(specXSpring, v => `${v}%`);
+    const specYPercent = useTransform(specYSpring, v => `${v}%`);
 
     return (
         <div
@@ -293,24 +304,38 @@ export const TiltCard = ({
                             : '0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05)'
                     }}
                 >
-                    {/* Realistic multi-layer light with proper falloff */}
+                    {/* Complete glass reflection system: glare + specular + environment + Fresnel */}
                     <motion.div
                         className="absolute inset-0 pointer-events-none"
                         style={{
                             background: useMotionTemplate`
                                 radial-gradient(
                                     420px circle at ${glareX} ${glareY},
-                                    rgba(255,248,235,0.4) 0%,
-                                    rgba(255,248,235,0.18) 20%,
-                                    rgba(255,248,235,0.05) 38%,
+                                    rgba(255,248,235,0.35) 0%,
+                                    rgba(255,248,235,0.15) 22%,
+                                    rgba(255,248,235,0.04) 40%,
                                     transparent 55%
+                                ),
+                                radial-gradient(
+                                    180px circle at ${specXPercent} ${specYPercent},
+                                    rgba(255,255,255,0.55) 0%,
+                                    rgba(255,255,255,0.25) 15%,
+                                    transparent 35%
+                                ),
+                                linear-gradient(
+                                    135deg,
+                                    rgba(255,255,255,0.12),
+                                    rgba(255,255,255,0.02) 40%,
+                                    rgba(255,255,255,0.15) 70%,
+                                    rgba(255,255,255,0.03)
                                 ),
                                 radial-gradient(
                                     900px circle at 50% 120%,
                                     rgba(255,255,255,0.08),
                                     transparent 70%
                                 )
-                            `
+                            `,
+                            boxShadow: 'inset 0 0 40px rgba(255,255,255,0.12)'
                         }}
                     />
                     <div className="relative z-10 w-full flex flex-col items-center gap-4">
