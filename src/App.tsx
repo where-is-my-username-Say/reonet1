@@ -126,13 +126,9 @@ ${servicesList}
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (step < 3) {
-      setIsProcessing(true);
-      // Premium artificial delay for "preparing your order" feel
-      await new Promise(r => setTimeout(r, 600));
       setStep(prev => prev + 1);
-      setIsProcessing(false);
     }
   };
 
@@ -227,7 +223,7 @@ ${servicesList}
                   <motion.div
                     key={s.id}
                     variants={itemVariants}
-                    className="h-full flex flex-col"
+                    className="flex flex-col"
                   >
                     <TiltCard
                       isSelected={selectedServices.includes(s.id)}
