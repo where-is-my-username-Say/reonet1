@@ -46,9 +46,9 @@ export const TiltCard = ({
     const xSpring = useSpring(x, springConfig);
     const ySpring = useSpring(y, springConfig);
 
-    // Legacy/Aggressive Tilt Angles from context
-    const rotateX = useTransform(ySpring, [-0.5, 0.5], ["30deg", "-30deg"]);
-    const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-30deg", "30deg"]);
+    // Legacy/Aggressive Tilt Angles - Increased to 45deg for depth
+    const rotateX = useTransform(ySpring, [-0.5, 0.5], ["45deg", "-45deg"]);
+    const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-45deg", "45deg"]);
 
     // Physical Follow (Translation)
     const translateX = useTransform(xSpring, [-0.5, 0.5], [20, -20]);
@@ -277,8 +277,8 @@ export const TiltCard = ({
     return (
         <div
             ref={containerRef}
-            className={`perspective-1000 w-full h-[360px] ${className} select-none touch-pan-y`}
-            style={{ cursor: 'pointer' }}
+            className={`w-full h-[360px] ${className} select-none touch-pan-y`}
+            style={{ cursor: 'pointer', perspective: '2000px' }}
             onMouseMove={onMouseMove}
             onMouseLeave={onMouseLeave}
             onMouseDown={handleMouseDown}
@@ -387,48 +387,52 @@ export const TiltCard = ({
                     {/* SIDE FACES (Thickness) */}
                     {/* Right Side */}
                     <div
-                        className="absolute h-[calc(100%-24px)] top-[12px] bg-[#0c0c12]/80 border-y border-r border-white/5"
+                        className="absolute top-0 right-0 h-full bg-[#0c0c12]/90 border-white/5"
                         style={{
                             width: `${thickness}px`,
-                            right: `-${thickness / 2}px`,
-                            transform: `rotateY(90deg) translateZ(0px)`,
-                            background: 'linear-gradient(to left, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                            transformOrigin: 'right',
+                            transform: `rotateY(90deg) translateZ(${thickness / 2}px)`,
+                            backfaceVisibility: 'hidden',
+                            background: 'linear-gradient(to left, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
                         }}
                     />
                     {/* Left Side */}
                     <div
-                        className="absolute h-[calc(100%-24px)] top-[12px] bg-[#0c0c12]/80 border-y border-l border-white/5"
+                        className="absolute top-0 left-0 h-full bg-[#0c0c12]/90 border-white/5"
                         style={{
                             width: `${thickness}px`,
-                            left: `-${thickness / 2}px`,
-                            transform: `rotateY(-90deg) translateZ(0px)`,
-                            background: 'linear-gradient(to right, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                            transformOrigin: 'left',
+                            transform: `rotateY(-90deg) translateZ(${thickness / 2}px)`,
+                            backfaceVisibility: 'hidden',
+                            background: 'linear-gradient(to right, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
                         }}
                     />
                     {/* Top Side */}
                     <div
-                        className="absolute w-[calc(100%-24px)] left-[12px] bg-[#0c0c12]/80 border-x border-t border-white/5"
+                        className="absolute top-0 left-0 w-full bg-[#0c0c12]/90 border-white/5"
                         style={{
                             height: `${thickness}px`,
-                            top: `-${thickness / 2}px`,
-                            transform: `rotateX(90deg) translateZ(0px)`,
-                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                            transformOrigin: 'top',
+                            transform: `rotateX(90deg) translateZ(${thickness / 2}px)`,
+                            backfaceVisibility: 'hidden',
+                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
                         }}
                     />
                     {/* Bottom Side */}
                     <div
-                        className="absolute w-[calc(100%-24px)] left-[12px] bg-[#0c0c12]/80 border-x border-b border-white/5"
+                        className="absolute bottom-0 left-0 w-full bg-[#0c0c12]/90 border-white/5"
                         style={{
                             height: `${thickness}px`,
-                            bottom: `-${thickness / 2}px`,
-                            transform: `rotateX(-90deg) translateZ(0px)`,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.4), rgba(255,255,255,0.04))'
+                            transformOrigin: 'bottom',
+                            transform: `rotateX(-90deg) translateZ(${thickness / 2}px)`,
+                            backfaceVisibility: 'hidden',
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(255,255,255,0.05))'
                         }}
                     />
 
-                    {/* BACK FACE (For full volume depth) */}
+                    {/* BACK FACE */}
                     <div
-                        className="absolute inset-0 bg-[#05050a]/90 rounded-2xl border border-white/5 shadow-2xl"
+                        className="absolute inset-0 bg-[#05050a]/95 rounded-2xl border border-white/5 shadow-2xl"
                         style={{
                             transform: `translateZ(-${thickness / 2}px) rotateY(180deg)`,
                             backfaceVisibility: 'hidden'
