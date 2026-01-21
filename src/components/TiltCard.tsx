@@ -311,31 +311,25 @@ export const TiltCard = ({
                             background: useMotionTemplate`
                                 radial-gradient(
                                     420px circle at ${glareX} ${glareY},
-                                    rgba(255,248,235,0.35) 0%,
-                                    rgba(255,248,235,0.15) 22%,
-                                    rgba(255,248,235,0.04) 40%,
+                                    rgba(255,248,235,0.175) 0%,
+                                    rgba(255,248,235,0.075) 22%,
+                                    rgba(255,248,235,0.02) 40%,
                                     transparent 55%
-                                ),
-                                radial-gradient(
-                                    180px circle at ${specXPercent} ${specYPercent},
-                                    rgba(255,255,255,0.55) 0%,
-                                    rgba(255,255,255,0.25) 15%,
-                                    transparent 35%
                                 ),
                                 linear-gradient(
                                     135deg,
-                                    rgba(255,255,255,0.12),
-                                    rgba(255,255,255,0.02) 40%,
-                                    rgba(255,255,255,0.15) 70%,
-                                    rgba(255,255,255,0.03)
+                                    rgba(255,255,255,0.06),
+                                    rgba(255,255,255,0.01) 40%,
+                                    rgba(255,255,255,0.075) 70%,
+                                    rgba(255,255,255,0.015)
                                 ),
                                 radial-gradient(
                                     900px circle at 50% 120%,
-                                    rgba(255,255,255,0.08),
+                                    rgba(255,255,255,0.04),
                                     transparent 70%
                                 )
                             `,
-                            boxShadow: 'inset 0 0 40px rgba(255,255,255,0.12)'
+                            boxShadow: 'inset 0 0 40px rgba(255,255,255,0.06)'
                         }}
                     />
                     <div className="relative z-10 w-full flex flex-col items-center gap-4">
