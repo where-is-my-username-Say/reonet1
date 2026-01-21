@@ -46,9 +46,7 @@ export const TiltCard = ({
     const rotateX = useTransform(ySpring, [-1, 1], ["25deg", "-25deg"]);
     const rotateY = useTransform(xSpring, [-1, 1], ["-25deg", "25deg"]);
 
-    // Specular reflection coordinates (angle-based, sharp highlight)
-    const specX = useTransform(xSpring, [-1, 1], [30, 70]);
-    const specY = useTransform(ySpring, [-1, 1], [30, 70]);
+
 
 
 
