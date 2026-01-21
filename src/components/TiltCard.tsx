@@ -46,9 +46,9 @@ export const TiltCard = ({
     const xSpring = useSpring(x, springConfig);
     const ySpring = useSpring(y, springConfig);
 
-    // Legacy/Aggressive Tilt Angles - Increased to 45deg for depth
-    const rotateX = useTransform(ySpring, [-0.5, 0.5], ["45deg", "-45deg"]);
-    const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-45deg", "45deg"]);
+    // Balanced Tilt Angles - Reduced from 45deg for better usability
+    const rotateX = useTransform(ySpring, [-0.5, 0.5], ["25deg", "-25deg"]);
+    const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-25deg", "25deg"]);
 
     // Physical Follow (Translation)
     const translateX = useTransform(xSpring, [-0.5, 0.5], [20, -20]);
