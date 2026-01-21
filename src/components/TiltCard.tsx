@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, type MouseEvent } from 'react';
+import { useRef, useEffect, useState, useMemo, type MouseEvent } from 'react';
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform, animate } from 'framer-motion';
 
 interface TiltCardProps {
@@ -45,11 +45,6 @@ export const TiltCard = ({
 
     const rotateX = useTransform(ySpring, [-1, 1], ["25deg", "-25deg"]);
     const rotateY = useTransform(xSpring, [-1, 1], ["-25deg", "25deg"]);
-
-
-
-
-
 
     const requestPermissions = async () => {
         // Request Orientation
@@ -236,26 +231,20 @@ export const TiltCard = ({
 
     const isPC = !/Android|iPhone|iPad/i.test(navigator.userAgent);
 
-    useEffect(() => {
-        if (isPC) {
-            const controlsX = animate(floatX, [0, 1, 0], {
-                duration: 5 / floatSpeed,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: floatOffset * 0.5
-            });
-            const controlsY = animate(floatY, [0, -1, 0, 1, 0], {
-                duration: 7 / floatSpeed,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: floatOffset * 0.3
-            });
-            return () => {
-                controlsX.stop();
-                controlsY.stop();
-            };
-        }
-    }, [isPC, floatSpeed, floatOffset, floatX, floatY]);
+    const floatAnim = useMemo(() => isPC ? {
+        y: [0, -10, 0],
+        z: [0, 5, 0],
+        rotateX: [0, floatOffset % 2 === 0 ? 2 : -2, 0],
+        rotateY: [0, floatOffset % 2 === 0 ? -2 : 2, 0],
+        rotateZ: [-1, 1, -1],
+    } : {}, [isPC, floatOffset]);
+
+    const floatTransition = useMemo(() => ({
+        duration: 5 / floatSpeed,
+        repeat: Infinity,
+        ease: "easeInOut",
+        delay: floatOffset * 0.5
+    }), [floatSpeed, floatOffset]);
 
     // Diffuse glare with tilt influence for physically accurate light behavior
     const glareX = useTransform([xSpring, floatX], ([x, fX]: any) => {
@@ -266,7 +255,6 @@ export const TiltCard = ({
         const combined = (y as number) + (fY as number) * 0.2 - (y as number) * 0.15;
         return `${(combined + 0.5) * 100}%`;
     });
-
 
 
     return (
@@ -284,81 +272,89 @@ export const TiltCard = ({
             onTouchCancel={handleInteractionEnd}
             onContextMenu={(e) => isLongPressed && e.preventDefault()}
         >
+            {/* Layer 1: Floating Animation (Idle Sway) */}
             <motion.div
-                className="relative w-full h-full transform-style-3d"
-                style={{ rotateX, rotateY }}
+                className="w-full h-full"
+                animate={floatAnim}
+                transition={floatTransition}
             >
+                {/* Layer 2: Mouse Tilt Interaction */}
                 <motion.div
-                    className="glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500"
-                    animate={{
-                        backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.15)' : 'rgba(13, 13, 18, 0.4)',
-                        borderColor: isSelected ? 'rgba(34, 197, 94, 0.6)' : 'rgba(255, 255, 255, 0.1)',
-                        boxShadow: isSelected
-                            ? '0 0 40px -5px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(34, 197, 94, 0.1)'
-                            : '0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05)'
-                    }}
+                    className="relative w-full h-full transform-style-3d"
+                    style={{ rotateX, rotateY }}
                 >
-                    {/* Complete glass reflection system: glare + specular + environment + Fresnel */}
                     <motion.div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                            background: useMotionTemplate`
-                                radial-gradient(
-                                    420px circle at ${glareX} ${glareY},
-                                    rgba(255,248,235,0.175) 0%,
-                                    rgba(255,248,235,0.075) 22%,
-                                    rgba(255,248,235,0.02) 40%,
-                                    transparent 55%
-                                ),
-                                linear-gradient(
-                                    135deg,
-                                    rgba(255,255,255,0.06),
-                                    rgba(255,255,255,0.01) 40%,
-                                    rgba(255,255,255,0.075) 70%,
-                                    rgba(255,255,255,0.015)
-                                ),
-                                radial-gradient(
-                                    900px circle at 50% 120%,
-                                    rgba(255,255,255,0.04),
-                                    transparent 70%
-                                )
-                            `,
-                            boxShadow: 'inset 0 0 40px rgba(255,255,255,0.06)'
+                        className="glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500"
+                        animate={{
+                            backgroundColor: isSelected ? 'rgba(34, 197, 94, 0.15)' : 'rgba(13, 13, 18, 0.4)',
+                            borderColor: isSelected ? 'rgba(34, 197, 94, 0.6)' : 'rgba(255, 255, 255, 0.1)',
+                            boxShadow: isSelected
+                                ? '0 0 40px -5px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(34, 197, 94, 0.1)'
+                                : '0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05)'
                         }}
-                    />
-                    <div className="relative z-10 w-full flex flex-col items-center gap-4">
-                        {children}
-                    </div>
-
-                    {/* Selection Status Indicator */}
-                    {isSelected && (
-                        <div className="absolute top-6 right-6 flex items-center gap-2">
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="w-8 h-8 rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.8)]"
-                            >
-                                <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                            </motion.div>
-                        </div>
-                    )}
-
-                    {/* Secret Debug Overlay */}
-                    <div
-                        className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
                     >
-                        {showDebug ? debugInfo : ""}
-                    </div>
+                        {/* Complete glass reflection system: glare + environment + Fresnel */}
+                        <motion.div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: useMotionTemplate`
+                                    radial-gradient(
+                                        420px circle at ${glareX} ${glareY},
+                                        rgba(255,248,235,0.175) 0%,
+                                        rgba(255,248,235,0.075) 22%,
+                                        rgba(255,248,235,0.02) 40%,
+                                        transparent 55%
+                                    ),
+                                    linear-gradient(
+                                        135deg,
+                                        rgba(255,255,255,0.06),
+                                        rgba(255,255,255,0.01) 40%,
+                                        rgba(255,255,255,0.075) 70%,
+                                        rgba(255,255,255,0.015)
+                                    ),
+                                    radial-gradient(
+                                        900px circle at 50% 120%,
+                                        rgba(255,255,255,0.04),
+                                        transparent 70%
+                                    )
+                                `,
+                                boxShadow: 'inset 0 0 40px rgba(255,255,255,0.06)'
+                            }}
+                        />
+                        <div className="relative z-10 w-full flex flex-col items-center gap-4">
+                            {children}
+                        </div>
 
-                    {/* Invisible trigger in corner */}
-                    <div
-                        className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
-                        onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
-                    />
+                        {/* Selection Status Indicator */}
+                        {isSelected && (
+                            <div className="absolute top-6 right-6 flex items-center gap-2">
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="w-8 h-8 rounded-full bg-[#22c55e] flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.8)]"
+                                >
+                                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                </motion.div>
+                            </div>
+                        )}
+
+                        {/* Secret Debug Overlay */}
+                        <div
+                            className="absolute bottom-2 left-2 opacity-50 text-[10px] text-white/50 select-none pointer-events-none uppercase font-bold tracking-tighter"
+                        >
+                            {showDebug ? debugInfo : ""}
+                        </div>
+
+                        {/* Invisible trigger in corner */}
+                        <div
+                            className="absolute bottom-0 left-0 w-12 h-12 cursor-help z-50"
+                            onClick={(e) => { e.stopPropagation(); setShowDebug(!showDebug); }}
+                        />
+                    </motion.div>
                 </motion.div>
             </motion.div>
-        </div >
+        </div>
     );
 };
