@@ -60,6 +60,7 @@ function App() {
   };
 
   const handleSend = async () => {
+    setIsProcessing(true);
     // Generate unique ID based on timestamp
     const orderId = Date.now().toString();
 
@@ -118,6 +119,7 @@ ${servicesList}
     } else {
       window.open(`https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMsg}`, "_blank");
     }
+    setIsProcessing(false);
   };
 
   useEffect(() => {
