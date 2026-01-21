@@ -305,35 +305,59 @@ export const TiltCard = ({
                 >
                     <motion.div
                         className="w-full h-full transform-style-3d relative"
+                        animate={isSelected ? {
+                            z: -20,
+                            scale: 0.98,
+                        } : {
+                            z: 0,
+                            scale: 1,
+                        }}
                     >
                         <div
-                            className={`absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-300 ${isSelected ? 'border-primary bg-primary/20 shadow-[0_0_30px_rgba(var(--primary-glow-rgb),0.2)]' : 'border-white/10'}`}
+                            className={`absolute inset-0 backface-hidden glass-card rounded-2xl flex flex-col items-center justify-center text-center p-6 overflow-hidden h-full border-2 transition-all duration-500 ${isSelected
+                                ? 'border-[#22c55e] bg-green-500/10 shadow-[0_0_50px_-5px_rgba(34,197,94,0.4)]'
+                                : 'border-white/10 bg-white/5'}`}
                             style={{ backfaceVisibility: 'hidden' }}
                         >
+                            {/* Animated Energy Border (Only for selection) */}
+                            {isSelected && (
+                                <motion.div
+                                    animate={{
+                                        opacity: [0.3, 0.6, 0.3],
+                                        boxShadow: [
+                                            "inset 0 0 20px rgba(34,197,94,0.2)",
+                                            "inset 0 0 40px rgba(34,197,94,0.4)",
+                                            "inset 0 0 20px rgba(34,197,94,0.2)"
+                                        ]
+                                    }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-0 rounded-2xl pointer-events-none"
+                                />
+                            )}
+
                             <motion.div
                                 className="absolute inset-0 pointer-events-none"
                                 style={{
-                                    background: useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(255,255,255,0.25), transparent 80%)`
+                                    background: isSelected
+                                        ? useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(34, 197, 94, 0.3), transparent 80%)`
+                                        : useMotionTemplate`radial-gradient(600px circle at ${glareX} ${glareY}, rgba(255,255,255,0.25), transparent 80%)`
                                 }}
                             />
                             <div className="relative z-10 w-full flex flex-col items-center gap-4">
                                 {children}
                             </div>
 
-                            {/* Selection Checkmark Overlay */}
-                            {isSelected && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.5 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="absolute top-4 right-4 z-20"
-                                >
-                                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_15px_var(--primary-glow)]">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                </motion.div>
-                            )}
+                            {/* Selection Status Indicator */}
+                            <motion.div
+                                animate={isSelected ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 10, scale: 0.8 }}
+                                className="absolute top-6 right-6 z-20"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-[#22c55e] border-2 border-white/20 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.8)]">
+                                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-white">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                            </motion.div>
 
                             {/* Secret Debug Overlay */}
                             <div
